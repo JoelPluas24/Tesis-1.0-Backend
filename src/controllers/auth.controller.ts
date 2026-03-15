@@ -18,19 +18,19 @@ export const registerUser = async (req: Request, res: Response) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     // Insertar usuario
-    const [result]: any = await pool.query(
+    const { rows: result }: any = await pool.query(
       `INSERT INTO usuarios (nombres, apellidos, email, password_hash, rol)
-       VALUES (?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [nombres, apellidos, email, password_hash, rol]
     );
 
-    const userId = result.insertId;
+    const userId = result[0].id;
 
     // Si es fisioterapeuta
     if (rol === UserRole.FISIOTERAPEUTA) {
       await pool.query(
         `INSERT INTO fisioterapeutas (usuario_id, especialidad, telefono)
-         VALUES (?, ?, ?)`,
+         VALUES ($1, $2, $3)`,
         [userId, especialidad, telefono]
       );
     }
@@ -39,7 +39,7 @@ export const registerUser = async (req: Request, res: Response) => {
     if (rol === UserRole.PACIENTE) {
       await pool.query(
         `INSERT INTO pacientes (usuario_id, edad, genero, direccion)
-         VALUES (?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4)`,
         [userId, edad, genero, direccion]
       );
     }
@@ -51,7 +51,7 @@ export const registerUser = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error(error);
 
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') { // PostgreSQL unique violation error code
       return res.status(400).json({ message: 'El email ya está registrado' });
     }
 
@@ -63,8 +63,8 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const [rows]: any = await pool.query(
-      `SELECT * FROM usuarios WHERE email = ? AND activo = 1`,
+    const { rows }: any = await pool.query(
+      `SELECT * FROM usuarios WHERE email = $1 AND activo = true`,
       [email]
     );
 
@@ -87,7 +87,7 @@ export const loginUser = async (req: Request, res: Response) => {
         email: user.email
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15m' }
+      { expiresIn: '30d' }
     );
 
     const refreshToken = jwt.sign(

@@ -6,10 +6,10 @@ export const obtenerEjerciciosRecomendados = async (req: Request, res: Response)
 
   try {
     // 1. Verificar si el paciente existe y traer información clínica relevante
-    const [paciente]: any = await pool.query(
+    const { rows: paciente }: any = await pool.query(
       `SELECT id, fase_recuperacion, edad 
       FROM pacientes 
-      WHERE id = ?`,
+      WHERE id = $1`,
       [paciente_id]
     );
 
@@ -20,7 +20,7 @@ export const obtenerEjerciciosRecomendados = async (req: Request, res: Response)
     const { fase_recuperacion, edad } = paciente[0];
 
     // 2. Obtener ejercicios base recomendados basados en patologías y fase
-    let [ejercicios]: any = await pool.query(
+    let { rows: ejercicios }: any = await pool.query(
       `SELECT DISTINCT 
       e.id, 
       e.nombre, 
@@ -33,9 +33,9 @@ export const obtenerEjerciciosRecomendados = async (req: Request, res: Response)
       INNER JOIN patologia_ejercicios pe ON e.id = pe.ejercicio_id
       INNER JOIN paciente_patologias pp ON pe.patologia_id = pp.patologia_id
       INNER JOIN patologias p ON pp.patologia_id = p.id
-      WHERE pp.paciente_id = ? 
-      AND e.fase_recomendada = ?
-      AND e.activo = 1`,
+      WHERE pp.paciente_id = $1 
+      AND e.fase_recomendada = $2
+      AND e.activo = true`,
       [paciente_id, fase_recuperacion]
     );
 
@@ -45,21 +45,21 @@ export const obtenerEjerciciosRecomendados = async (req: Request, res: Response)
       let queryFallback = `
         SELECT id, nombre, descripcion, nivel_dificultad, video_url, fase_recomendada, 'Catálogo General' as patologia_nombre 
         FROM ejercicios 
-        WHERE activo = 1
+        WHERE activo = true
       `;
       let paramsFallback: any[] = [];
 
       if (fase_recuperacion) {
-        queryFallback += ` AND fase_recomendada = ?`;
+        queryFallback += ` AND fase_recomendada = $1`;
         paramsFallback.push(fase_recuperacion);
       }
 
-      const [fallback]: any = await pool.query(queryFallback, paramsFallback);
+      const { rows: fallback }: any = await pool.query(queryFallback, paramsFallback);
 
       if (fallback.length === 0) {
         // En el peor de los casos (ej. la fase de recuperación no exite en los ejercicios), 
         // traer TODOS los ejercicios activos independientemente de la fase.
-        const [general]: any = await pool.query(`SELECT id, nombre, descripcion, nivel_dificultad, video_url, fase_recomendada, 'Catálogo Completo' as patologia_nombre FROM ejercicios WHERE activo = 1`);
+        const { rows: general }: any = await pool.query(`SELECT id, nombre, descripcion, nivel_dificultad, video_url, fase_recomendada, 'Catálogo Completo' as patologia_nombre FROM ejercicios WHERE activo = true`);
         ejercicios = general;
       } else {
         ejercicios = fallback;

@@ -8,8 +8,8 @@ export const registrarCumplimiento = async (req: Request, res: Response) => {
   try {
 
     // Buscar el paciente asociado al usuario logueado
-    const [paciente]: any = await pool.query(
-      `SELECT id FROM pacientes WHERE usuario_id = ?`,
+    const { rows: paciente }: any = await pool.query(
+      `SELECT id FROM pacientes WHERE usuario_id = $1`,
       [usuario_id]
     );
 
@@ -20,9 +20,9 @@ export const registrarCumplimiento = async (req: Request, res: Response) => {
     const paciente_id = paciente[0].id;
 
     // VALIDACIÓN: ¿Ya completó este ejercicio hoy?
-    const [existente]: any = await pool.query(
+    const { rows: existente }: any = await pool.query(
       `SELECT id FROM cumplimiento_ejercicios 
-       WHERE paciente_id = ? AND ejercicio_id = ? AND fecha = CURDATE()`,
+       WHERE paciente_id = $1 AND ejercicio_id = $2 AND fecha = CURRENT_DATE`,
       [paciente_id, ejercicio_id]
     );
 
@@ -36,14 +36,14 @@ export const registrarCumplimiento = async (req: Request, res: Response) => {
     await pool.query(
       `INSERT INTO cumplimiento_ejercicios 
        (paciente_id, ejercicio_id, fecha, completado)
-       VALUES (?, ?, CURDATE(), 1)`,
+       VALUES ($1, $2, CURRENT_DATE, true)`,
       [paciente_id, ejercicio_id]
     );
 
     // ---- INICIO DE LÓGICA DE ALTA MÉDICA AUTOMÁTICA ----
     // 1. Encontrar la rutina activa primero para sacar los totales
-    const [rutina]: any = await pool.query(
-      `SELECT id FROM rutinas WHERE paciente_id = ? AND activa = 1`,
+    const { rows: rutina }: any = await pool.query(
+      `SELECT id FROM rutinas WHERE paciente_id = $1 AND activa = true`,
       [paciente_id]
     );
 
@@ -52,18 +52,18 @@ export const registrarCumplimiento = async (req: Request, res: Response) => {
     if (rutina.length > 0) {
       const rutinaId = rutina[0].id;
       // 2. Cantidad de ejercicios en la rutina
-      const [totalResult]: any = await pool.query(
-        `SELECT COUNT(*) as total FROM rutina_ejercicios WHERE rutina_id = ?`,
+      const { rows: totalResult }: any = await pool.query(
+        `SELECT COUNT(*) as total FROM rutina_ejercicios WHERE rutina_id = $1`,
         [rutinaId]
       );
       const total_ejercicios = totalResult[0].total;
 
       // 3. Cantidad de distintos ejercicios que se han marcado realizados de ESA rutina
-      const [realizadosResult]: any = await pool.query(
+      const { rows: realizadosResult }: any = await pool.query(
         `SELECT COUNT(DISTINCT c.ejercicio_id) as realizados
          FROM cumplimiento_ejercicios c
          INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-         WHERE c.paciente_id = ? AND re.rutina_id = ?`,
+         WHERE c.paciente_id = $1 AND re.rutina_id = $2`,
         [paciente_id, rutinaId]
       );
       const ejercicios_realizados = realizadosResult[0].realizados;
@@ -76,11 +76,11 @@ export const registrarCumplimiento = async (req: Request, res: Response) => {
       if (porcentaje_cumplimiento >= 100) {
         altaMedica = true;
         // Baja Lógica (Alta Médica Exitosa): El paciente ya no requiere seguir y libera el cupo.
-        await pool.query(`UPDATE usuarios SET activo = 0 WHERE id = ?`, [usuario_id]);
+        await pool.query(`UPDATE usuarios SET activo = false WHERE id = $1`, [usuario_id]);
         
         // Liberar al fisioterapeuta de la responsabilidad y desactivar la rutina completada
-        await pool.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE id = ?`, [paciente_id]);
-        await pool.query(`UPDATE rutinas SET activa = 0 WHERE id = ?`, [rutinaId]);
+        await pool.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE id = $1`, [paciente_id]);
+        await pool.query(`UPDATE rutinas SET activa = false WHERE id = $1`, [rutinaId]);
       }
     }
     // ---- FIN DE LÓGICA DE ALTA MÉDICA AUTOMÁTICA ----
@@ -102,8 +102,8 @@ export const verProgresoPaciente = async (req: Request, res: Response) => {
   try {
 
     // 1. Encontrar la rutina activa primero para sacar los totales
-    const [rutina]: any = await pool.query(
-      `SELECT id FROM rutinas WHERE paciente_id = ? AND activa = 1`,
+    const { rows: rutina }: any = await pool.query(
+      `SELECT id FROM rutinas WHERE paciente_id = $1 AND activa = true`,
       [paciente_id]
     );
 
@@ -120,30 +120,30 @@ export const verProgresoPaciente = async (req: Request, res: Response) => {
     const rutinaId = rutina[0].id;
 
     // 2. Obtener la tabla base de progreso
-    const [progreso]: any = await pool.query(
+    const { rows: progreso }: any = await pool.query(
       `SELECT 
         e.nombre,
         COUNT(c.id) AS veces_realizado
        FROM cumplimiento_ejercicios c
        INNER JOIN ejercicios e ON c.ejercicio_id = e.id
-       WHERE c.paciente_id = ?
+       WHERE c.paciente_id = $1
        GROUP BY e.nombre`,
       [paciente_id]
     );
 
     // 3. Cantidad de ejercicios en la rutina
-    const [totalResult]: any = await pool.query(
-      `SELECT COUNT(*) as total FROM rutina_ejercicios WHERE rutina_id = ?`,
+    const { rows: totalResult }: any = await pool.query(
+      `SELECT COUNT(*) as total FROM rutina_ejercicios WHERE rutina_id = $1`,
       [rutinaId]
     );
     const total_ejercicios = totalResult[0].total;
 
     // 4. Cantidad de distintos ejercicios que se han marcado realizados de ESA rutina
-    const [realizadosResult]: any = await pool.query(
+    const { rows: realizadosResult }: any = await pool.query(
       `SELECT COUNT(DISTINCT c.ejercicio_id) as realizados
        FROM cumplimiento_ejercicios c
        INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-       WHERE c.paciente_id = ? AND re.rutina_id = ?`,
+       WHERE c.paciente_id = $1 AND re.rutina_id = $2`,
       [paciente_id, rutinaId]
     );
     const ejercicios_realizados = realizadosResult[0].realizados;

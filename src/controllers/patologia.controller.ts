@@ -6,15 +6,15 @@ export const crearPatologia = async (req: Request, res: Response) => {
 
   try {
 
-    const [result]: any = await pool.query(
+    const { rows: result }: any = await pool.query(
       `INSERT INTO patologias (nombre, descripcion, nivel_gravedad)
-       VALUES (?, ?, ?)`,
+       VALUES ($1, $2, $3) RETURNING id`,
       [nombre, descripcion, nivel_gravedad]
     );
 
     res.status(201).json({
       message: 'Patología creada correctamente',
-      id: result.insertId
+      id: result[0].id
     });
 
   } catch (error) {
@@ -25,7 +25,7 @@ export const crearPatologia = async (req: Request, res: Response) => {
 
 export const obtenerPatologias = async (req: Request, res: Response) => {
   try {
-    const [patologias] = await pool.query('SELECT * FROM patologias WHERE activa = 1 ORDER BY fecha_creacion DESC');
+    const { rows: patologias } = await pool.query('SELECT * FROM patologias WHERE activa = true ORDER BY fecha_creacion DESC');
     res.status(200).json(patologias);
   } catch (error) {
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -35,12 +35,12 @@ export const obtenerPatologias = async (req: Request, res: Response) => {
 export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const [ejercicios] = await pool.query(
+    const { rows: ejercicios } = await pool.query(
       `SELECT e.*
        FROM ejercicios e
        INNER JOIN patologia_ejercicios pe ON e.id = pe.ejercicio_id
-       WHERE pe.patologia_id = ?
-       AND e.activo = 1`,
+       WHERE pe.patologia_id = $1
+       AND e.activo = true`,
       [id]
     );
     res.status(200).json(ejercicios);
@@ -52,7 +52,7 @@ export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response)
 export const obtenerPatologiaPorId = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const [patologia]: any = await pool.query('SELECT * FROM patologias WHERE id = ?', [id]);
+    const { rows: patologia }: any = await pool.query('SELECT * FROM patologias WHERE id = $1', [id]);
     if (patologia.length === 0) {
       return res.status(404).json({ message: 'Patología no encontrada' });
     }
@@ -67,14 +67,14 @@ export const actualizarPatologia = async (req: Request, res: Response) => {
   const { nombre, descripcion, nivel_gravedad } = req.body;
 
   try {
-    const [result]: any = await pool.query(
+    const result: any = await pool.query(
       `UPDATE patologias 
-       SET nombre = ?, descripcion = ?, nivel_gravedad = ?
-       WHERE id = ?`,
+       SET nombre = $1, descripcion = $2, nivel_gravedad = $3
+       WHERE id = $4`,
       [nombre, descripcion, nivel_gravedad, id]
     );
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Patología no encontrada' });
     }
 
@@ -89,9 +89,9 @@ export const eliminarPatologia = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     // Borrado lógico utilizando la columna 'activa' de la base de datos
-    const [result]: any = await pool.query('UPDATE patologias SET activa = 0 WHERE id = ?', [id]);
+    const result: any = await pool.query('UPDATE patologias SET activa = false WHERE id = $1', [id]);
     
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Patología no encontrada' });
     }
 

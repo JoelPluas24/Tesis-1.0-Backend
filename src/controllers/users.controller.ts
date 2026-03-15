@@ -6,7 +6,7 @@ export const obtenerPerfil = async (req: Request, res: Response) => {
 
   try {
 
-    const [rows]: any = await pool.query(
+    const { rows }: any = await pool.query(
       `SELECT 
          u.id, u.nombres, u.apellidos, u.email, u.rol, u.activo,
          p.id as paciente_id,
@@ -14,7 +14,7 @@ export const obtenerPerfil = async (req: Request, res: Response) => {
        FROM usuarios u
        LEFT JOIN pacientes p ON p.usuario_id = u.id
        LEFT JOIN fisioterapeutas f ON f.usuario_id = u.id
-       WHERE u.id = ?`,
+       WHERE u.id = $1`,
       [user.id]
     );
 

@@ -5,8 +5,8 @@ import { UserRole } from '../types/roles.js';
 export const seedDatabase = async () => {
   try {
     // Verificar si existe al menos un administrador
-    const [rows]: any = await pool.query(
-      'SELECT id FROM usuarios WHERE rol = ? LIMIT 1',
+    const { rows }: any = await pool.query(
+      'SELECT id FROM usuarios WHERE rol = $1 LIMIT 1',
       [UserRole.ADMIN]
     );
 
@@ -25,7 +25,7 @@ export const seedDatabase = async () => {
       // Insertar usuario administrador
       await pool.query(
         `INSERT INTO usuarios (nombres, apellidos, email, password_hash, rol)
-         VALUES (?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5)`,
         [nombres, apellidos, email, password_hash, rol]
       );
 

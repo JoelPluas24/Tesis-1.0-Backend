@@ -1,103 +1,61 @@
-import type { Request, Response } from 'express';
-import { pool } from '../config/database.js';
+import type { Request, Response, NextFunction } from 'express';
+import { PatologiaService } from '../services/patologia.service.js';
+import { ApiResponse } from '../utils/response.js';
 
-export const crearPatologia = async (req: Request, res: Response) => {
-  const { nombre, descripcion, nivel_gravedad } = req.body;
-
+export const crearPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
-    const { rows: result }: any = await pool.query(
-      `INSERT INTO patologias (nombre, descripcion, nivel_gravedad)
-       VALUES ($1, $2, $3) RETURNING id`,
-      [nombre, descripcion, nivel_gravedad]
-    );
-
-    res.status(201).json({
-      message: 'Patología creada correctamente',
-      id: result[0].id
-    });
-
+    const id = await PatologiaService.crearPatologia(req.body);
+    return ApiResponse.success(res, 'Patología creada correctamente', { id }, 201);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const obtenerPatologias = async (req: Request, res: Response) => {
+export const obtenerPatologias = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows: patologias } = await pool.query('SELECT * FROM patologias WHERE activa = true ORDER BY fecha_creacion DESC');
-    res.status(200).json(patologias);
+    const data = await PatologiaService.obtenerPatologias();
+    return ApiResponse.success(res, 'Lista de patologías obtenida', data);
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows: ejercicios } = await pool.query(
-      `SELECT e.*
-       FROM ejercicios e
-       INNER JOIN patologia_ejercicios pe ON e.id = pe.ejercicio_id
-       WHERE pe.patologia_id = $1
-       AND e.activo = true`,
-      [id]
-    );
-    res.status(200).json(ejercicios);
+    const { id } = req.params;
+    const data = await PatologiaService.obtenerEjerciciosPorPatologia(Number(id));
+    return ApiResponse.success(res, 'Ejercicios de la patología obtenidos', data);
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const obtenerPatologiaPorId = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const obtenerPatologiaPorId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows: patologia }: any = await pool.query('SELECT * FROM patologias WHERE id = $1', [id]);
-    if (patologia.length === 0) {
-      return res.status(404).json({ message: 'Patología no encontrada' });
-    }
-    res.status(200).json(patologia[0]);
+    const { id } = req.params;
+    const data = await PatologiaService.obtenerPatologiaPorId(Number(id));
+    return ApiResponse.success(res, 'Patología obtenida', data);
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const actualizarPatologia = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { nombre, descripcion, nivel_gravedad } = req.body;
-
+export const actualizarPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result: any = await pool.query(
-      `UPDATE patologias 
-       SET nombre = $1, descripcion = $2, nivel_gravedad = $3
-       WHERE id = $4`,
-      [nombre, descripcion, nivel_gravedad, id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Patología no encontrada' });
-    }
-
-    res.status(200).json({ message: 'Patología actualizada correctamente' });
+    const { id } = req.params;
+    await PatologiaService.actualizarPatologia(Number(id), req.body);
+    return ApiResponse.success(res, 'Patología actualizada correctamente');
   } catch (error) {
-    console.error("Error al actualizar patología:", error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const eliminarPatologia = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const eliminarPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Borrado lógico utilizando la columna 'activa' de la base de datos
-    const result: any = await pool.query('UPDATE patologias SET activa = false WHERE id = $1', [id]);
-    
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Patología no encontrada' });
-    }
-
-    res.status(200).json({ message: 'Patología eliminada correctamente' });
+    const { id } = req.params;
+    await PatologiaService.eliminarPatologia(Number(id));
+    return ApiResponse.success(res, 'Patología eliminada correctamente');
   } catch (error) {
-    console.error("Error al eliminar patología:", error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };

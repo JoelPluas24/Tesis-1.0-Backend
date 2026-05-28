@@ -1,17 +1,18 @@
 import bcrypt from 'bcryptjs';
 import { pool } from './database.js';
 import { UserRole } from '../types/roles.js';
+import { logger } from '../utils/logger.js';
 
 export const seedDatabase = async () => {
   try {
     // Verificar si existe al menos un administrador
-    const { rows }: any = await pool.query(
-      'SELECT id FROM usuarios WHERE rol = $1 LIMIT 1',
+    const [rows]: any = await pool.query(
+      'SELECT id FROM usuarios WHERE rol = ? LIMIT 1',
       [UserRole.ADMIN]
     );
 
     if (rows.length === 0) {
-      console.log('⚠️ No se encontró ningún administrador. Creando administrador por defecto...');
+      logger.info('No se encontró ningún administrador. Creando administrador por defecto...');
 
       const nombres = 'Administrador';
       const apellidos = 'Sistema';
@@ -25,18 +26,18 @@ export const seedDatabase = async () => {
       // Insertar usuario administrador
       await pool.query(
         `INSERT INTO usuarios (nombres, apellidos, email, password_hash, rol)
-         VALUES ($1, $2, $3, $4, $5)`,
+         VALUES (?, ?, ?, ?, ?)`,
         [nombres, apellidos, email, password_hash, rol]
       );
 
-      console.log('✅ Administrador inicial creado con éxito.');
-      console.log('📧 Email: admin@rehabsync.com');
-      console.log('🔑 Password: admin123');
-      console.log('⚠️ Por favor, cambie la contraseña después de iniciar sesión por primera vez.');
+      logger.info('Administrador inicial creado con éxito.');
+      logger.info('Email: admin@rehabsync.com');
+      logger.info('Password: admin123');
+      logger.info('Por favor, cambie la contraseña después de iniciar sesión por primera vez.');
     } else {
-      console.log('ℹ️ Administrador ya existe en la base de datos.');
+      logger.info('Administrador ya existe en la base de datos.');
     }
   } catch (error) {
-    console.error('❌ Error durante la inicialización de la base de datos:', error);
+    logger.error('Error durante la inicialización de la base de datos:', error);
   }
 };

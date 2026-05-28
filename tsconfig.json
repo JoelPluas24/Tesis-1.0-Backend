@@ -44,5 +44,8 @@
     "moduleResolution": "NodeNext"
 
 
-  }
+  },
+  "exclude": [
+    "*.ts"
+  ]
 }

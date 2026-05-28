@@ -4,7 +4,7 @@ import { authenticateToken } from '../middlewares/authenticateToken.js';
 import { authorizeRole } from '../middlewares/authorizeRole.js';
 import { UserRole } from '../types/roles.js';
 import { listarFisioterapeutas, actualizarFisioterapeuta, eliminarFisioterapeuta } from '../controllers/admin.controller.js';
-import { listarPacientes, actualizarPaciente, eliminarPaciente } from '../controllers/admin.controller.js';
+import { listarPacientes, actualizarPaciente, eliminarPaciente, listarPacientesInactivos, reactivarPaciente } from '../controllers/admin.controller.js';
 import { reporteGeneral } from '../controllers/admin.controller.js';
 
 const router = Router();
@@ -15,6 +15,13 @@ router.get(
   authenticateToken,
   authorizeRole([UserRole.ADMIN]),
   listarPacientes
+);
+
+router.get(
+  '/pacientes-inactivos',
+  authenticateToken,
+  authorizeRole([UserRole.ADMIN]),
+  listarPacientesInactivos
 );
 
 router.put(
@@ -29,6 +36,13 @@ router.delete(
   authenticateToken,
   authorizeRole([UserRole.ADMIN]),
   eliminarPaciente
+);
+
+router.put(
+  '/pacientes/:id/reactivar',
+  authenticateToken,
+  authorizeRole([UserRole.ADMIN]),
+  reactivarPaciente
 );
 
 router.get(

@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: rehabilitacion_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Joelpluas24.
+      MYSQL_DATABASE: rehabilitacion_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build: .
+    container_name: rehabilitacion_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=Joelpluas24.
+      - DB_NAME=rehabilitacion_db
+      - JWT_SECRET=supersecretaccess
+      - JWT_REFRESH_SECRET=supersecretrefresh
+    depends_on:
+      - db
+
+volumes:
+  db_data:

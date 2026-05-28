@@ -9,7 +9,7 @@ import pacienteRoutes from './routes/paciente.routes.js';
 import rutinaRoutes from './routes/rutina.routes.js';
 import cumplimientoRoutes from './routes/cumplimiento.routes.js'
 import fisioterapeutaRoutes from './routes/fisioterapeuta.routes.js';
-
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 
@@ -31,7 +31,7 @@ app.use('/api/rutinas', rutinaRoutes);
 app.use('/api/cumplimiento', cumplimientoRoutes);
 app.use('/api/fisioterapeuta', fisioterapeutaRoutes);
 
-
-
+// Manejo global de errores
+app.use(errorHandler);
 
 export default app;

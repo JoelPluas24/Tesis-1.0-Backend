@@ -1,10 +1,17 @@
 import { Router } from 'express';
-import { listarPacientesAsignados, verPatologiaPaciente, asignarPatologiaPaciente } from '../controllers/fisioterapeuta.controller.js';
+import { listarPacientesAsignados, verPatologiaPaciente, asignarPatologiaPaciente, obtenerReporte, asignarFasePaciente } from '../controllers/fisioterapeuta.controller.js';
 import { authenticateToken } from '../middlewares/authenticateToken.js';
 import { authorizeRole } from '../middlewares/authorizeRole.js';
 import { UserRole } from '../types/roles.js';
 
 const router = Router();
+
+router.get(
+  '/reporte',
+  authenticateToken,
+  authorizeRole([UserRole.FISIOTERAPEUTA]),
+  obtenerReporte
+);
 
 router.get(
   '/mis-pacientes',
@@ -25,6 +32,13 @@ router.post(
   authenticateToken,
   authorizeRole([UserRole.FISIOTERAPEUTA]),
   asignarPatologiaPaciente
+);
+
+router.put(
+  '/pacientes/:paciente_id/fase',
+  authenticateToken,
+  authorizeRole([UserRole.FISIOTERAPEUTA]),
+  asignarFasePaciente
 );
 
 export default router;

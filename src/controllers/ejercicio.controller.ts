@@ -1,129 +1,66 @@
-import type { Request, Response } from 'express';
-import { pool } from '../config/database.js';
+import type { Request, Response, NextFunction } from 'express';
+import { EjercicioService } from '../services/ejercicio.service.js';
+import { ApiResponse } from '../utils/response.js';
 
-export const crearEjercicio = async (req: Request, res: Response) => {
-  const {
-    nombre,
-    descripcion,
-    indicaciones,
-    contraindicaciones,
-    nivel_dificultad,
-    video_url
-  } = req.body;
-
+export const crearEjercicio = async (req: Request, res: Response, next: NextFunction) => {
   try {
-
-    const { rows: result }: any = await pool.query(
-      `INSERT INTO ejercicios
-       (nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url]
-    );
-
-    res.status(201).json({
-      message: 'Ejercicio creado correctamente',
-      id: result[0].id
-    });
-
+    const id = await EjercicioService.crearEjercicio(req.body);
+    return ApiResponse.success(res, 'Ejercicio creado correctamente', { id }, 201);
   } catch (error) {
-    console.error("Error al crear ejercicio:", error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const asociarEjercicioPatologia = async (req: Request, res: Response) => {
-  const { patologia_id, ejercicios_ids } = req.body;
-
+export const asociarEjercicioPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Primero, limpiamos las asociaciones anteriores para esa patología
-    await pool.query('DELETE FROM patologia_ejercicios WHERE patologia_id = $1', [patologia_id]);
-
-    if (!ejercicios_ids || ejercicios_ids.length === 0) {
-      return res.status(200).json({ message: 'Asociaciones actualizadas (vacío)' });
-    }
-
-    // Preparamos los valores para la inserción masiva
-    const placeholders = ejercicios_ids.map((_: any, i: number) => `($1, $${i + 2})`).join(', ');
+    const { patologia_id, ejercicios_ids } = req.body;
+    await EjercicioService.asociarEjercicioPatologia(Number(patologia_id), ejercicios_ids);
     
-    await pool.query(
-      `INSERT INTO patologia_ejercicios (patologia_id, ejercicio_id) VALUES ${placeholders}`,
-      [patologia_id, ...ejercicios_ids]
-    );
-
-    res.status(201).json({
-      message: 'Ejercicios asociados correctamente a la patología'
-    });
-
+    const message = (ejercicios_ids && ejercicios_ids.length > 0)
+      ? 'Ejercicios asociados correctamente a la patología'
+      : 'Asociaciones actualizadas (vacío)';
+      
+    return ApiResponse.success(res, message, null, 201);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const obtenerEjercicios = async (req: Request, res: Response) => {
+export const obtenerEjercicios = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows: ejercicios } = await pool.query('SELECT * FROM ejercicios WHERE activo = true ORDER BY fecha_creacion DESC');
-    res.status(200).json(ejercicios);
+    const data = await EjercicioService.obtenerEjercicios();
+    return ApiResponse.success(res, 'Lista de ejercicios obtenida', data);
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const obtenerEjercicioPorId = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const obtenerEjercicioPorId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { rows: ejercicio }: any = await pool.query('SELECT * FROM ejercicios WHERE id = $1', [id]);
-    if (ejercicio.length === 0) {
-      return res.status(404).json({ message: 'Ejercicio no encontrado' });
-    }
-    res.status(200).json(ejercicio[0]);
+    const { id } = req.params;
+    const data = await EjercicioService.obtenerEjercicioPorId(Number(id));
+    return ApiResponse.success(res, 'Ejercicio obtenido', data);
   } catch (error) {
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const actualizarEjercicio = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const {
-    nombre,
-    descripcion,
-    indicaciones,
-    contraindicaciones,
-    nivel_dificultad,
-    video_url
-  } = req.body;
-
+export const actualizarEjercicio = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result: any = await pool.query(
-      `UPDATE ejercicios 
-       SET nombre = $1, descripcion = $2, indicaciones = $3, contraindicaciones = $4, nivel_dificultad = $5, video_url = $6
-       WHERE id = $7`,
-      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Ejercicio no encontrado' });
-    }
-
-    res.status(200).json({ message: 'Ejercicio actualizado correctamente' });
+    const { id } = req.params;
+    await EjercicioService.actualizarEjercicio(Number(id), req.body);
+    return ApiResponse.success(res, 'Ejercicio actualizado correctamente');
   } catch (error) {
-    console.error("Error al actualizar ejercicio:", error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };
 
-export const eliminarEjercicio = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const eliminarEjercicio = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result: any = await pool.query('UPDATE ejercicios SET activo = false WHERE id = $1', [id]);
-    
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Ejercicio no encontrado' });
-    }
-
-    res.status(200).json({ message: 'Ejercicio eliminado correctamente' });
+    const { id } = req.params;
+    await EjercicioService.eliminarEjercicio(Number(id));
+    return ApiResponse.success(res, 'Ejercicio eliminado correctamente');
   } catch (error) {
-    console.error("Error al eliminar ejercicio:", error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    next(error);
   }
 };

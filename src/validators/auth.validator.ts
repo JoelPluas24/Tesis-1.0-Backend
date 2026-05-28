@@ -20,4 +20,8 @@ export const registerValidation = [
     .isIn(Object.values(UserRole))
     .withMessage('Rol inválido'),
 
+  body('edad').optional().isNumeric().withMessage('La edad debe ser un número'),
+  body('genero').optional().isIn(['MASCULINO', 'FEMENINO', 'OTRO']).withMessage('Género inválido'),
+  body('direccion').optional().isString().withMessage('La dirección debe ser una cadena de texto'),
+
 ];

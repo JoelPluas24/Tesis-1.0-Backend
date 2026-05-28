@@ -16,9 +16,12 @@ const server = http.createServer(app);
 // Inicializar Socket.io con el servidor HTTP
 socketService.init(server);
 
-// Ejecutar inicialización de la base de datos
-seedDatabase().then(() => {
-  server.listen(PORT, () => {
-    logger.info(`Servidor HTTP y WebSockets corriendo en el puerto ${PORT}`);
+// Arrancar servidor primero, luego ejecutar seed
+server.listen(PORT, () => {
+  logger.info(`Servidor HTTP y WebSockets corriendo en el puerto ${PORT}`);
+
+  // Ejecutar seed después de que el servidor ya levantó
+  seedDatabase().catch(err => {
+    logger.error('Seed error (non-fatal):', err.message);
   });
 });

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { registrarCumplimiento, verProgresoPaciente, verHistorialPaciente } from '../controllers/cumplimiento.controller.js';
 import { authenticateToken } from '../middlewares/authenticateToken.js';
 import { authorizeRole } from '../middlewares/authorizeRole.js';
+import { authorizePatientAccess } from '../middlewares/authorizePatientAccess.js';
 import { UserRole } from '../types/roles.js';
 
 const router = Router();
@@ -16,12 +17,14 @@ router.post(
 router.get(
   '/progreso/:paciente_id',
   authenticateToken,
+  authorizePatientAccess,
   verProgresoPaciente
 );
 
 router.get(
   '/historial/:paciente_id',
   authenticateToken,
+  authorizePatientAccess,
   verHistorialPaciente
 );
 

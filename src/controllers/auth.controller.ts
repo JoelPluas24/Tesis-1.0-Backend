@@ -21,10 +21,10 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-export const refreshAccessToken = (req: Request, res: Response, next: NextFunction) => {
+export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
-    const newAccessToken = AuthService.refreshAccessToken(refreshToken);
+    const newAccessToken = await AuthService.refreshAccessToken(refreshToken);
     return ApiResponse.success(res, 'Token renovado', { accessToken: newAccessToken });
   } catch (error) {
     next(error);

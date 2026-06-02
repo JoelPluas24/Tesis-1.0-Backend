@@ -70,7 +70,7 @@ export class AuthService {
     const accessToken = jwt.sign(
       { id: user.id, rol: user.rol, email: user.email },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15m' }
+      { expiresIn: '2h' }
     );
 
     const refreshToken = jwt.sign(
@@ -101,7 +101,7 @@ export class AuthService {
       const newAccessToken = jwt.sign(
         { id: user.id, rol: user.rol, email: user.email },
         process.env.JWT_SECRET as string,
-        { expiresIn: '15m' }
+        { expiresIn: '2h' }
       );
 
       return newAccessToken;

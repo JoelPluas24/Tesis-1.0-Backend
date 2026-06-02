@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthRepository } from '../repositories/auth.repository.js';
+import { UsersRepository } from '../repositories/users.repository.js';
 import { UserRole } from '../types/roles.js';
 import { AppError } from '../utils/AppError.js';
 import { pool } from '../config/database.js';
@@ -69,7 +70,7 @@ export class AuthService {
     const accessToken = jwt.sign(
       { id: user.id, rol: user.rol, email: user.email },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15m' }
+      { expiresIn: '2h' }
     );
 
     const refreshToken = jwt.sign(
@@ -81,22 +82,33 @@ export class AuthService {
     return { accessToken, refreshToken, user: { id: user.id, rol: user.rol, email: user.email, nombres: user.nombres, apellidos: user.apellidos } };
   }
 
-  static refreshAccessToken(refreshToken: string) {
+  static async refreshAccessToken(refreshToken: string) {
     if (!refreshToken) {
       throw new AppError('Refresh token requerido', 401);
     }
 
     try {
-      const user: any = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET as string);
+      const decoded: any = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET as string);
+
+      const user = await UsersRepository.getPerfilUsuario(decoded.id);
+      if (!user) {
+        throw new AppError('Usuario no encontrado', 404);
+      }
+      if (!user.activo) {
+        throw new AppError('Usuario inactivo', 403);
+      }
 
       const newAccessToken = jwt.sign(
-        { id: user.id },
+        { id: user.id, rol: user.rol, email: user.email },
         process.env.JWT_SECRET as string,
-        { expiresIn: '15m' }
+        { expiresIn: '2h' }
       );
 
       return newAccessToken;
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       throw new AppError('Refresh token inválido', 403);
     }
   }

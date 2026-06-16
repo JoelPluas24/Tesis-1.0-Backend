@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { crearRutina, obtenerRutinaActiva, obtenerHistorialRutinas, obtenerTodosLosEjerciciosPaciente, obtenerEjerciciosPorRutina, editarRutina, eliminarRutina } from '../controllers/rutina.controller.js';
+import { crearRutina, obtenerRutinaActiva, obtenerHistorialRutinas, obtenerTodosLosEjerciciosPaciente, obtenerEjerciciosPorRutina, editarRutina, eliminarRutina, finalizarRutina } from '../controllers/rutina.controller.js';
 import { authenticateToken } from '../middlewares/authenticateToken.js';
 import { authorizeRole } from '../middlewares/authorizeRole.js';
 import { authorizePatientAccess } from '../middlewares/authorizePatientAccess.js';
@@ -21,6 +21,14 @@ router.put(
   authorizeRole([UserRole.FISIOTERAPEUTA]),
   authorizePatientAccess,
   editarRutina
+);
+
+router.put(
+  '/:id/finalizar',
+  authenticateToken,
+  authorizeRole([UserRole.FISIOTERAPEUTA]),
+  authorizePatientAccess,
+  finalizarRutina
 );
 
 router.delete(
@@ -55,7 +63,6 @@ router.get(
 router.get(
   '/:id/ejercicios',
   authenticateToken,
-  authorizeRole([UserRole.FISIOTERAPEUTA]),
   authorizePatientAccess,
   obtenerEjerciciosPorRutina
 );

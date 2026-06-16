@@ -63,6 +63,16 @@ export const editarRutina = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+export const finalizarRutina = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    await RutinaService.finalizarRutina(Number(id));
+    return ApiResponse.success(res, 'Plan terapéutico finalizado correctamente');
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const eliminarRutina = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

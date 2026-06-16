@@ -54,4 +54,25 @@ export class FisioterapeutaService {
     }
     await PacienteRepository.actualizarFaseRecuperacion(pacienteId, fase);
   }
+
+  static async actualizarDatosClinicos(pacienteId: number, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
+    await PacienteRepository.actualizarDatosClinicos(pacienteId, datos);
+  }
+
+  static async darAltaPaciente(pacienteId: number) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      // Finalizar cualquier rutina activa
+      await connection.query(`UPDATE rutinas SET activa = 0 WHERE paciente_id = ? AND activa = 1`, [pacienteId]);
+      // Quitar la patología activa (si aplica, o simplemente actualizar la fase)
+      await connection.query(`UPDATE pacientes SET fase_recuperacion = 'ALTA' WHERE id = ?`, [pacienteId]);
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
 }

@@ -15,7 +15,7 @@ export const authorizePatientAccess = async (req: Request, res: Response, next: 
       return next();
     }
 
-    let pacienteIdRaw = req.params.paciente_id || req.body.paciente_id;
+    let pacienteIdRaw = req.params.paciente_id || req.body?.paciente_id;
 
     // Si no hay paciente_id directo, pero hay un id de rutina en los params (para PUT/DELETE/GET de rutinas)
     if (!pacienteIdRaw && req.params.id) {

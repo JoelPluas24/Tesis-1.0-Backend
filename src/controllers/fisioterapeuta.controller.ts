@@ -58,3 +58,24 @@ export const asignarFasePaciente = async (req: Request, res: Response, next: Nex
     next(error);
   }
 };
+
+export const darAltaPaciente = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { paciente_id } = req.params;
+    await FisioterapeutaService.darAltaPaciente(Number(paciente_id));
+    return ApiResponse.success(res, 'Paciente dado de alta con éxito');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const actualizarDatosClinicos = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { paciente_id } = req.params;
+    const { nivel_dolor, comorbilidades, nivel_actividad_fisica } = req.body;
+    await FisioterapeutaService.actualizarDatosClinicos(Number(paciente_id), { nivel_dolor, comorbilidades, nivel_actividad_fisica });
+    return ApiResponse.success(res, 'Datos clínicos actualizados con éxito');
+  } catch (error) {
+    next(error);
+  }
+};

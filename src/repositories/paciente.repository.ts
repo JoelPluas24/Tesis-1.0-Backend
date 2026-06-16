@@ -3,7 +3,7 @@ import { pool } from '../config/database.js';
 export class PacienteRepository {
   static async getPacienteById(id: number) {
     const [rows]: any = await pool.query(
-      `SELECT id, usuario_id, fase_recuperacion, edad FROM pacientes WHERE id = ?`,
+      `SELECT id, usuario_id, fase_recuperacion, edad, nivel_dolor, comorbilidades, nivel_actividad_fisica FROM pacientes WHERE id = ?`,
       [id]
     );
     return rows[0];
@@ -69,6 +69,15 @@ export class PacienteRepository {
     const [result]: any = await pool.query(
       `UPDATE pacientes SET fase_recuperacion = ? WHERE id = ?`,
       [fase, pacienteId]
+    );
+    return result;
+  }
+
+  static async actualizarDatosClinicos(pacienteId: number, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
+    const comorbilidadesJson = datos.comorbilidades ? JSON.stringify(datos.comorbilidades) : null;
+    const [result]: any = await pool.query(
+      `UPDATE pacientes SET nivel_dolor = ?, comorbilidades = ?, nivel_actividad_fisica = ? WHERE id = ?`,
+      [datos.nivel_dolor, comorbilidadesJson, datos.nivel_actividad_fisica, pacienteId]
     );
     return result;
   }

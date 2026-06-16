@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listarPacientesAsignados, verPatologiaPaciente, asignarPatologiaPaciente, obtenerReporte, asignarFasePaciente } from '../controllers/fisioterapeuta.controller.js';
+import { listarPacientesAsignados, verPatologiaPaciente, asignarPatologiaPaciente, obtenerReporte, asignarFasePaciente, actualizarDatosClinicos, darAltaPaciente } from '../controllers/fisioterapeuta.controller.js';
 import { authenticateToken } from '../middlewares/authenticateToken.js';
 import { authorizeRole } from '../middlewares/authorizeRole.js';
 import { authorizePatientAccess } from '../middlewares/authorizePatientAccess.js';
@@ -43,6 +43,22 @@ router.put(
   authorizeRole([UserRole.FISIOTERAPEUTA]),
   authorizePatientAccess,
   asignarFasePaciente
+);
+
+router.put(
+  '/pacientes/:paciente_id/datos-clinicos',
+  authenticateToken,
+  authorizeRole([UserRole.FISIOTERAPEUTA]),
+  authorizePatientAccess,
+  actualizarDatosClinicos
+);
+
+router.put(
+  '/pacientes/:paciente_id/alta',
+  authenticateToken,
+  authorizeRole([UserRole.FISIOTERAPEUTA]),
+  authorizePatientAccess,
+  darAltaPaciente
 );
 
 export default router;

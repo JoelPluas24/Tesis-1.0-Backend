@@ -102,6 +102,11 @@ export class RutinaService {
     }
   }
 
+  static async finalizarRutina(rutinaId: number) {
+    await RutinaRepository.finalizarRutina(rutinaId);
+    return true;
+  }
+
   static async eliminarRutina(rutinaId: number) {
     const connection = await pool.getConnection();
 

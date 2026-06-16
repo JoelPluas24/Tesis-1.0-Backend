@@ -89,7 +89,7 @@ export class RutinaRepository {
               p.nombre as patologia_nombre, p.descripcion as patologia_descripcion, p.nivel_gravedad as patologia_gravedad
        FROM rutinas r
        LEFT JOIN patologias p ON r.patologia_id = p.id
-       WHERE r.paciente_id = ?
+       WHERE r.paciente_id = ? AND r.activa = 0
        ORDER BY r.fecha_creacion DESC`,
       [pacienteId]
     );
@@ -101,6 +101,13 @@ export class RutinaRepository {
     await connection.query(
       `UPDATE rutinas SET fecha_inicio = ?, fecha_fin = ?, observaciones = ? WHERE id = ?`,
       [fecha_inicio, fecha_fin, observaciones, rutinaId]
+    );
+  }
+
+  static async finalizarRutina(rutinaId: number) {
+    await pool.query(
+      `UPDATE rutinas SET activa = 0 WHERE id = ?`,
+      [rutinaId]
     );
   }
 

@@ -43,10 +43,11 @@ export class CumplimientoService {
         : 0;
 
       if (porcentajeCumplimiento >= 100) {
-        altaMedica = true;
-        await CumplimientoRepository.deactivateUsuario(usuarioId);
-        await CumplimientoRepository.unassignFisioterapeuta(pacienteId);
-        await CumplimientoRepository.deactivateRutina(rutinaId);
+        // En lugar de dar alta automática, solo notificamos al fisioterapeuta
+        // altaMedica = true; // Se elimina el alta automática
+        // await CumplimientoRepository.deactivateUsuario(usuarioId);
+        // await CumplimientoRepository.unassignFisioterapeuta(pacienteId);
+        // await CumplimientoRepository.deactivateRutina(rutinaId);
 
         // Notificación 3: Notificar al admin y fisioterapeuta que el paciente completó su plan
         try {
@@ -60,8 +61,8 @@ export class CumplimientoService {
           const fisioId = pacData[0]?.fisioterapeuta_id;
 
           const notifData = {
-            titulo: 'Alta Médica',
-            mensaje: `${nombrePaciente} ha completado todos sus ejercicios y puede ser dado de alta.`,
+            titulo: 'Plan Completado',
+            mensaje: `${nombrePaciente} ha completado el 100% de su plan de ejercicios. Revise su progreso para considerar darle de Alta.`,
             fecha: new Date().toISOString()
           };
 

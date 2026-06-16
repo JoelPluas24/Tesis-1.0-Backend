@@ -1,6 +1,9 @@
 export interface HechosPaciente {
   edad: number;
   fase_recuperacion: string;
+  nivel_dolor?: number; // Escala de 0 a 10
+  comorbilidades?: string[]; // Ej: ['CARDIACA', 'HIPERTENSION', 'DIABETES']
+  nivel_actividad_fisica?: string; // Ej: 'SEDENTARIO', 'MODERADAMENTE_ACTIVO', 'ACTIVO', 'DEPORTISTA'
   [key: string]: any;
 }
 

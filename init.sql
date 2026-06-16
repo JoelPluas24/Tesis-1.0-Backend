@@ -28,7 +28,10 @@ CREATE TABLE IF NOT EXISTS pacientes (
     edad INT,
     genero ENUM('M', 'F'),
     direccion VARCHAR(200),
-    fase_recuperacion ENUM('AGUDA', 'SUBAGUDA', 'FORTALECIMIENTO') DEFAULT 'AGUDA',
+    fase_recuperacion ENUM('AGUDA', 'SUBAGUDA', 'FORTALECIMIENTO', 'ALTA') DEFAULT 'AGUDA',
+    nivel_dolor TINYINT DEFAULT 0,
+    comorbilidades JSON DEFAULT NULL,
+    nivel_actividad_fisica VARCHAR(30) DEFAULT 'SEDENTARIO',
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (fisioterapeuta_id) REFERENCES fisioterapeutas(id)
 );

@@ -12,6 +12,7 @@ export class FisioterapeutaRepository {
   static async getPacientesByFisioterapeuta(fisioterapeutaId: number) {
     const [rows]: any = await pool.query(
       `SELECT p.id, u.nombres, u.apellidos, u.email, p.edad, p.genero, p.fase_recuperacion,
+              p.nivel_dolor, p.comorbilidades, p.nivel_actividad_fisica,
               (SELECT COUNT(*) > 0 FROM rutinas r WHERE r.paciente_id = p.id AND r.activa = 0) as tiene_historial
        FROM pacientes p
        INNER JOIN usuarios u ON p.usuario_id = u.id

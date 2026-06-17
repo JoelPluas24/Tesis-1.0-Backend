@@ -38,14 +38,14 @@ export class PacienteService {
         accion: (listaEjercicios: any[]) => 
           listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO')
       },
-      // REGLA 2: En fase aguda los ejercicios se ordenan de menor a mayor dificultad
+      // REGLA 2: En fase aguda no se permiten ejercicios ALTO, y se ordenan de menor a mayor dificultad
       {
         nombre: 'fase_aguda',
         condicion: (hechos: any) => hechos.fase_recuperacion === 'AGUDA',
         accion: (listaEjercicios: any[]) => {
-          const clon = [...listaEjercicios];
-          return clon.sort((a, b) => {
-            const peso: any = { 'BAJO': 1, 'MEDIO': 2, 'ALTO': 3 };
+          const filtrados = listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO');
+          return filtrados.sort((a, b) => {
+            const peso: any = { 'BAJO': 1, 'MEDIO': 2 };
             return peso[a.nivel_dificultad] - peso[b.nivel_dificultad];
           });
         }
@@ -65,14 +65,16 @@ export class PacienteService {
           hechos.comorbilidades?.includes('HIPERTENSION'),
         accion: (listaEjercicios: any[]) => listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO')
       },
-      // REGLA 5: Fase fortalecimiento — prioriza ejercicios de mayor a menor dificultad
+      // REGLA 5: Fase fortalecimiento — permite todos los niveles para progresar, pero siempre ordenados de menor a mayor dificultad para respetar el calentamiento
       {
         nombre: 'fase_fortalecimiento',
         condicion: (hechos: any) => hechos.fase_recuperacion === 'FORTALECIMIENTO',
         accion: (listaEjercicios: any[]) => {
-          const peso: any = { 'BAJO': 3, 'MEDIO': 2, 'ALTO': 1 };
           const clon = [...listaEjercicios];
-          return clon.sort((a, b) => peso[a.nivel_dificultad] - peso[b.nivel_dificultad]);
+          return clon.sort((a, b) => {
+            const peso: any = { 'BAJO': 1, 'MEDIO': 2, 'ALTO': 3 };
+            return peso[a.nivel_dificultad] - peso[b.nivel_dificultad];
+          });
         }
       },
       // REGLA 6: Paciente sedentario — solo ejercicios de nivel BAJO

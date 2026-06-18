@@ -18,10 +18,18 @@ export class RutinaRepository {
     );
     const patologia_id = patologias.length > 0 ? patologias[0].patologia_id : null;
 
+    // Obtener la fotografía clínica del paciente en este momento
+    const [pacientesInfo]: any = await connection.query(
+      `SELECT fase_recuperacion, nivel_dolor, comorbilidades, nivel_actividad_fisica FROM pacientes WHERE id = ?`,
+      [paciente_id]
+    );
+    const pInfo = pacientesInfo[0] || {};
+    const { fase_recuperacion, nivel_dolor, comorbilidades, nivel_actividad_fisica } = pInfo;
+
     const [result]: any = await connection.query(
-      `INSERT INTO rutinas (paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id]
+      `INSERT INTO rutinas (paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades, nivel_actividad_fisica)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades ? JSON.stringify(comorbilidades) : null, nivel_actividad_fisica]
     );
     return result.insertId;
   }
@@ -86,13 +94,33 @@ export class RutinaRepository {
   static async getHistorialRutinas(pacienteId: number) {
     const [rutinas]: any = await pool.query(
       `SELECT r.id, r.fecha_inicio, r.fecha_fin, r.observaciones, r.activa, r.fecha_creacion,
-              p.nombre as patologia_nombre, p.descripcion as patologia_descripcion, p.nivel_gravedad as patologia_gravedad
+              r.fase_recuperacion, r.nivel_dolor, r.comorbilidades, r.nivel_actividad_fisica,
+              p.nombre as patologia_nombre, p.descripcion as patologia_descripcion, p.nivel_gravedad as patologia_gravedad,
+              (SELECT COUNT(*) FROM rutina_ejercicios re WHERE re.rutina_id = r.id) as total_ejercicios,
+              (SELECT COUNT(*) FROM cumplimiento_ejercicios c 
+               INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id 
+               WHERE re.rutina_id = r.id AND c.paciente_id = r.paciente_id 
+               AND c.fecha >= r.fecha_inicio AND c.fecha <= IFNULL(r.fecha_fin, CURDATE())) as total_completados
        FROM rutinas r
        LEFT JOIN patologias p ON r.patologia_id = p.id
        WHERE r.paciente_id = ? AND r.activa = 0
        ORDER BY r.fecha_creacion DESC`,
       [pacienteId]
     );
+
+    for (const r of rutinas) {
+      if (r.fecha_inicio && r.fecha_fin) {
+         const msPerDay = 1000 * 60 * 60 * 24;
+         const diffTime = Math.abs(new Date(r.fecha_fin).getTime() - new Date(r.fecha_inicio).getTime());
+         const diffDays = Math.ceil(diffTime / msPerDay) + 1;
+         const expected = diffDays * (r.total_ejercicios || 0);
+         r.porcentaje = expected > 0 ? Math.round((r.total_completados / expected) * 100) : 0;
+         if(r.porcentaje > 100) r.porcentaje = 100;
+      } else {
+         r.porcentaje = 0;
+      }
+    }
+
     return rutinas;
   }
 

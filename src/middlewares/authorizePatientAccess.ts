@@ -27,11 +27,6 @@ export const authorizePatientAccess = async (req: Request, res: Response, next: 
         return next(new AppError('Rutina no encontrada', 404));
       }
       
-      // Si el rol es FISIOTERAPEUTA, verificar que sea el creador de la rutina o esté asignado al paciente
-      if (user.rol === UserRole.FISIOTERAPEUTA && rutinaRows[0].fisioterapeuta_id !== user.id) {
-        return next(new AppError('No tienes permisos para acceder o modificar esta rutina', 403));
-      }
-      
       pacienteIdRaw = rutinaRows[0].paciente_id;
     }
 

@@ -106,7 +106,8 @@ export class PacienteService {
       fase_recuperacion,
       edad,
       reglas_aplicadas: inferencia.reglasAplicadas,
-      ejercicios_recomendados: inferencia.ejercicios
+      ejercicios_recomendados: inferencia.ejercicios,
+      catalogo_general: ejercicios
     };
   }
 }

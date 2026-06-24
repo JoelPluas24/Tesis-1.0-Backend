@@ -32,40 +32,48 @@ export class PacienteService {
     // 1. Base de Conocimientos: Reglas Clínicas Desacopladas
     const reglasClinicas = [
       {
-        // REGLA 1: Pacientes mayores de 60 años no deben realizar ejercicios de alta dificultad
+        // REGLA 1: Pacientes mayores de 60 años — excluir ejercicios con impacto articular y priorizar movilidad/estiramiento
         nombre: 'edad_avanzada',
         condicion: (hechos: any) => hechos.edad > 60,
         accion: (listaEjercicios: any[]) => 
-          listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO')
+          listaEjercicios.filter(e => e.impacto_articular === 0 && e.nivel_dificultad !== 'ALTO')
       },
-      // REGLA 2: En fase aguda no se permiten ejercicios ALTO, y se ordenan de menor a mayor dificultad
+      // REGLA 2: En fase aguda — solo ejercicios sin carga ni impacto articular, ordenados de menor a mayor dificultad
       {
         nombre: 'fase_aguda',
         condicion: (hechos: any) => hechos.fase_recuperacion === 'AGUDA',
         accion: (listaEjercicios: any[]) => {
-          const filtrados = listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO');
+          const filtrados = listaEjercicios.filter(e => 
+            e.requiere_carga === 0 && 
+            e.impacto_articular === 0 &&
+            (e.tipo_ejercicio === 'MOVILIDAD' || e.tipo_ejercicio === 'ESTIRAMIENTO')
+          );
           return filtrados.sort((a, b) => {
             const peso: any = { 'BAJO': 1, 'MEDIO': 2 };
-            return peso[a.nivel_dificultad] - peso[b.nivel_dificultad];
+            return (peso[a.nivel_dificultad] || 3) - (peso[b.nivel_dificultad] || 3);
           });
         }
       },
-      // --- NUEVAS REGLAS AGREGADAS ---
       {
-      // REGLA 3: Nivel de dolor alto (6-10) — solo ejercicios de nivel BAJO
+      // REGLA 3: Nivel de dolor alto (6-10) — solo ejercicios de movilidad o estiramiento sin carga
         nombre: 'nivel_dolor_alto',
         condicion: (hechos: any) => hechos.nivel_dolor >= 6,
-        accion: (listaEjercicios: any[]) => listaEjercicios.filter(e => e.nivel_dificultad === 'BAJO')
+        accion: (listaEjercicios: any[]) => listaEjercicios.filter(e => 
+          (e.tipo_ejercicio === 'MOVILIDAD' || e.tipo_ejercicio === 'ESTIRAMIENTO') &&
+          e.requiere_carga === 0
+        )
       },
       {
-        // REGLA 4: Comorbilidad cardíaca — excluye ejercicios de alta intensidad
+        // REGLA 4: Comorbilidad cardíaca — excluye ejercicios que requieran carga o sean de alta intensidad
         nombre: 'comorbilidad_cardiaca',
         condicion: (hechos: any) => 
           hechos.comorbilidades?.includes('CARDIACA') || 
           hechos.comorbilidades?.includes('HIPERTENSION'),
-        accion: (listaEjercicios: any[]) => listaEjercicios.filter(e => e.nivel_dificultad !== 'ALTO')
+        accion: (listaEjercicios: any[]) => listaEjercicios.filter(e => 
+          e.requiere_carga === 0 && e.nivel_dificultad !== 'ALTO'
+        )
       },
-      // REGLA 5: Fase fortalecimiento — permite todos los niveles para progresar, pero siempre ordenados de menor a mayor dificultad para respetar el calentamiento
+      // REGLA 5: Fase fortalecimiento — permite todos los niveles y tipos para progresar, ordenados de menor a mayor dificultad
       {
         nombre: 'fase_fortalecimiento',
         condicion: (hechos: any) => hechos.fase_recuperacion === 'FORTALECIMIENTO',
@@ -77,12 +85,12 @@ export class PacienteService {
           });
         }
       },
-      // REGLA 6: Paciente sedentario — solo ejercicios de nivel BAJO
+      // REGLA 6: Paciente sedentario — solo ejercicios sin impacto articular y sin carga
       {
         nombre: 'vida_sedentaria',
         condicion: (hechos: any) => hechos.nivel_actividad_fisica === 'SEDENTARIO',
         accion: (listaEjercicios: any[]) => 
-          listaEjercicios.filter(e => e.nivel_dificultad === 'BAJO')
+          listaEjercicios.filter(e => e.impacto_articular === 0 && e.requiere_carga === 0)
       }
     ];
 

@@ -12,7 +12,7 @@ export class PacienteRepository {
   static async getEjerciciosRecomendadosBase(pacienteId: number, faseRecuperacion: string) {
     const [rows]: any = await pool.query(
       `SELECT DISTINCT 
-      e.id, e.nombre, e.descripcion, e.nivel_dificultad, e.video_url, p.nombre as patologia_nombre
+      e.id, e.nombre, e.descripcion, e.nivel_dificultad, e.video_url, e.tipo_ejercicio, e.requiere_carga, e.impacto_articular, p.nombre as patologia_nombre
       FROM ejercicios e
       INNER JOIN patologia_ejercicios pe ON e.id = pe.ejercicio_id
       INNER JOIN paciente_patologias pp ON pe.patologia_id = pp.patologia_id
@@ -27,7 +27,10 @@ export class PacienteRepository {
   static async getEjerciciosPorPatologia(pacienteId: number) {
     const [rows]: any = await pool.query(
       `SELECT DISTINCT 
-      e.id, e.nombre, e.descripcion, e.nivel_dificultad, e.video_url, p.nombre as patologia_nombre
+      e.id, e.nombre, e.descripcion, 
+      e.nivel_dificultad, e.video_url, 
+      e.tipo_ejercicio, e.requiere_carga, 
+      e.impacto_articular, p.nombre as patologia_nombre      
       FROM ejercicios e
       INNER JOIN patologia_ejercicios pe ON e.id = pe.ejercicio_id
       INNER JOIN paciente_patologias pp ON pe.patologia_id = pp.patologia_id
@@ -41,7 +44,9 @@ export class PacienteRepository {
 
   static async getEjerciciosFallback(faseRecuperacion?: string) {
     let queryFallback = `
-      SELECT id, nombre, descripcion, nivel_dificultad, video_url, 'Catálogo General' as patologia_nombre 
+      SELECT id, nombre, descripcion, nivel_dificultad, 
+      video_url, tipo_ejercicio, requiere_carga, impacto_articular, 
+      'Catálogo General' as patologia_nombre 
       FROM ejercicios 
       WHERE activo = 1
     `;
@@ -58,7 +63,7 @@ export class PacienteRepository {
 
   static async getEjerciciosGeneral() {
     const [rows]: any = await pool.query(`
-      SELECT id, nombre, descripcion, nivel_dificultad, video_url, 'Catálogo Completo' as patologia_nombre 
+      SELECT id, nombre, descripcion, nivel_dificultad, video_url, tipo_ejercicio, requiere_carga, impacto_articular, 'Catálogo Completo' as patologia_nombre 
       FROM ejercicios 
       WHERE activo = 1
     `);

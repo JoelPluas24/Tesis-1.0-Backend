@@ -2,11 +2,11 @@ import { pool } from '../config/database.js';
 
 export class EjercicioRepository {
   static async create(data: any) {
-    const { nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url } = data;
+    const { nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, tipo_ejercicio, requiere_carga, impacto_articular } = data;
     const [result]: any = await pool.query(
-      `INSERT INTO ejercicios (nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url]
+      `INSERT INTO ejercicios (nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, tipo_ejercicio, requiere_carga, impacto_articular)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, tipo_ejercicio || 'MOVILIDAD', requiere_carga ? 1 : 0, impacto_articular ? 1 : 0]
     );
     return result.insertId;
   }
@@ -44,12 +44,12 @@ export class EjercicioRepository {
   }
 
   static async update(id: number, data: any) {
-    const { nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url } = data;
+    const { nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, tipo_ejercicio, requiere_carga, impacto_articular } = data;
     const [result]: any = await pool.query(
       `UPDATE ejercicios 
-       SET nombre = ?, descripcion = ?, indicaciones = ?, contraindicaciones = ?, nivel_dificultad = ?, video_url = ?
+       SET nombre = ?, descripcion = ?, indicaciones = ?, contraindicaciones = ?, nivel_dificultad = ?, video_url = ?, tipo_ejercicio = ?, requiere_carga = ?, impacto_articular = ?
        WHERE id = ?`,
-      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, id]
+      [nombre, descripcion, indicaciones, contraindicaciones, nivel_dificultad, video_url, tipo_ejercicio || 'MOVILIDAD', requiere_carga ? 1 : 0, impacto_articular ? 1 : 0, id]
     );
     return result.affectedRows > 0;
   }

@@ -56,9 +56,14 @@ export class RutinaRepository {
   static async getEjerciciosByRutina(rutinaId: number) {
     const [ejercicios]: any = await pool.query(
       `SELECT e.id, e.nombre, e.descripcion, e.video_url,
-              re.series, re.repeticiones, re.frecuencia
+              re.series, re.repeticiones, re.frecuencia,
+              (SELECT COUNT(*) FROM cumplimiento_ejercicios c 
+               WHERE c.ejercicio_id = e.id 
+                 AND c.paciente_id = r.paciente_id 
+                 AND c.fecha >= r.fecha_inicio AND c.fecha <= IFNULL(r.fecha_fin, CURDATE())) as veces_realizado
        FROM rutina_ejercicios re
        INNER JOIN ejercicios e ON re.ejercicio_id = e.id
+       INNER JOIN rutinas r ON re.rutina_id = r.id
        WHERE re.rutina_id = ?`,
       [rutinaId]
     );

@@ -104,7 +104,7 @@ export class CumplimientoService {
     }
 
     const { id: rutinaId, fecha_inicio, fecha_fin } = rutina;
-    const progreso = await CumplimientoRepository.getProgresoResumen(pacienteId);
+    const progreso = await CumplimientoRepository.getProgresoResumen(pacienteId, rutinaId, fecha_inicio, fecha_fin);
     
     const totalEjercicios = await CumplimientoRepository.countEjerciciosRutina(rutinaId);
     

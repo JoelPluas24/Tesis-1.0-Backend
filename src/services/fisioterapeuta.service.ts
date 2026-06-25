@@ -65,8 +65,19 @@ export class FisioterapeutaService {
       await connection.beginTransaction();
       // Finalizar cualquier rutina activa
       await connection.query(`UPDATE rutinas SET activa = 0 WHERE paciente_id = ? AND activa = 1`, [pacienteId]);
-      // Quitar la patología activa (si aplica, o simplemente actualizar la fase)
-      await connection.query(`UPDATE pacientes SET fase_recuperacion = 'ALTA' WHERE id = ?`, [pacienteId]);
+      
+      // Limpiar las patologías asignadas
+      await connection.query(`DELETE FROM paciente_patologias WHERE paciente_id = ?`, [pacienteId]);
+
+      // Limpiar los datos clínicos del expediente para dejarlo en blanco para una futura consulta
+      await connection.query(`
+        UPDATE pacientes 
+        SET fase_recuperacion = NULL, 
+            nivel_dolor = NULL, 
+            comorbilidades = NULL, 
+            nivel_actividad_fisica = NULL 
+        WHERE id = ?
+      `, [pacienteId]);
       await connection.commit();
     } catch (error) {
       await connection.rollback();

@@ -89,17 +89,36 @@ export class CumplimientoRepository {
     await pool.query(`UPDATE rutinas SET activa = 0 WHERE id = ?`, [rutinaId]);
   }
 
-  static async getProgresoResumen(pacienteId: number) {
-    const [rows]: any = await pool.query(
-      `SELECT 
+  static async getProgresoResumen(pacienteId: number, rutinaId?: number, fechaInicio?: any, fechaFin?: any) {
+    let query = `SELECT 
         e.nombre,
         COUNT(c.id) AS veces_realizado
        FROM cumplimiento_ejercicios c
        INNER JOIN ejercicios e ON c.ejercicio_id = e.id
-       WHERE c.paciente_id = ?
-       GROUP BY e.nombre`,
-      [pacienteId]
-    );
+       WHERE c.paciente_id = ?`;
+    const params: any[] = [pacienteId];
+
+    if (rutinaId && fechaInicio && fechaFin) {
+      const fInicio = fechaInicio instanceof Date 
+        ? new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Guayaquil' }).format(fechaInicio)
+        : (typeof fechaInicio === 'string' ? fechaInicio.split('T')[0] : fechaInicio);
+      const fFin = fechaFin instanceof Date
+        ? new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Guayaquil' }).format(fechaFin)
+        : (typeof fechaFin === 'string' ? fechaFin.split('T')[0] : fechaFin);
+
+      query = `SELECT 
+        e.nombre,
+        COUNT(c.id) AS veces_realizado
+       FROM cumplimiento_ejercicios c
+       INNER JOIN ejercicios e ON c.ejercicio_id = e.id
+       INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
+       WHERE c.paciente_id = ? AND re.rutina_id = ? AND c.fecha BETWEEN ? AND ?`;
+      params.push(rutinaId, fInicio, fFin);
+    }
+
+    query += ` GROUP BY e.nombre`;
+
+    const [rows]: any = await pool.query(query, params);
     return rows;
   }
 
@@ -108,9 +127,11 @@ export class CumplimientoRepository {
       `SELECT 
         c.fecha, 
         COUNT(c.id) as cantidad_ejercicios,
+        GROUP_CONCAT(DISTINCT e.nombre SEPARATOR ', ') as nombres_ejercicios,
         r.id as rutina_id,
         p.nombre as patologia_nombre
        FROM cumplimiento_ejercicios c
+       INNER JOIN ejercicios e ON c.ejercicio_id = e.id
        INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
        INNER JOIN rutinas r ON re.rutina_id = r.id
        LEFT JOIN patologias p ON r.patologia_id = p.id

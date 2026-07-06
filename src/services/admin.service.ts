@@ -172,7 +172,7 @@ export class AdminService {
     }
   }
 
-  static async reporteGeneral() {
-    return await AdminRepository.getGeneralReport();
+  static async reporteGeneral(fechaInicio?: string, fechaFin?: string) {
+    return await AdminRepository.getGeneralReport(fechaInicio, fechaFin);
   }
 }

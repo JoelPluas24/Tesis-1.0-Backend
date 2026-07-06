@@ -117,11 +117,29 @@ export class AdminRepository {
     await pool.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE id = ?`, [id]);
   }
 
-  static async getGeneralReport() {
+  static async getGeneralReport(fechaInicio?: string, fechaFin?: string) {
+    let dateFilterCumplimiento = '';
+    let dateFilterRutina = '';
+    let params: any[] = [];
+
+    if (fechaInicio && fechaFin) {
+      dateFilterCumplimiento = 'WHERE fecha >= ? AND fecha <= ?';
+      dateFilterRutina = 'AND fecha_inicio >= ? AND fecha_inicio <= ?';
+      params = [fechaInicio, fechaFin];
+    } else if (fechaInicio) {
+      dateFilterCumplimiento = 'WHERE fecha >= ?';
+      dateFilterRutina = 'AND fecha_inicio >= ?';
+      params = [fechaInicio];
+    } else if (fechaFin) {
+      dateFilterCumplimiento = 'WHERE fecha <= ?';
+      dateFilterRutina = 'AND fecha_inicio <= ?';
+      params = [fechaFin];
+    }
+
     const [pacientes]: any = await pool.query(`SELECT COUNT(*) as total FROM pacientes`);
     const [fisios]: any = await pool.query(`SELECT COUNT(*) as total FROM usuarios WHERE rol = 'FISIOTERAPEUTA'`);
-    const [rutinas]: any = await pool.query(`SELECT COUNT(*) as total FROM rutinas WHERE activa = 1`);
-    const [cumplimiento]: any = await pool.query(`SELECT COUNT(*) as total FROM cumplimiento_ejercicios`);
+    const [rutinas]: any = await pool.query(`SELECT COUNT(*) as total FROM rutinas WHERE activa = 1 ${dateFilterRutina}`, params);
+    const [cumplimiento]: any = await pool.query(`SELECT COUNT(*) as total FROM cumplimiento_ejercicios ${dateFilterCumplimiento}`, params);
     
     return {
       total_pacientes: pacientes[0].total,

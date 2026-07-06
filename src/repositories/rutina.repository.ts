@@ -47,7 +47,10 @@ export class RutinaRepository {
 
   static async getRutinaActiva(pacienteId: number) {
     const [rutina]: any = await pool.query(
-      `SELECT * FROM rutinas WHERE paciente_id = ? AND activa = 1`,
+      `SELECT r.*, p.nombre as patologia_nombre 
+       FROM rutinas r
+       LEFT JOIN patologias p ON r.patologia_id = p.id
+       WHERE r.paciente_id = ? AND r.activa = 1`,
       [pacienteId]
     );
     return rutina[0];
@@ -98,7 +101,7 @@ export class RutinaRepository {
 
   static async getHistorialRutinas(pacienteId: number) {
     const [rutinas]: any = await pool.query(
-      `SELECT r.id, r.fecha_inicio, r.fecha_fin, r.observaciones, r.activa, r.fecha_creacion,
+      `SELECT r.id, r.fecha_inicio, r.fecha_fin, r.fecha_finalizacion, r.observaciones, r.activa, r.fecha_creacion,
               r.fase_recuperacion, r.nivel_dolor, r.comorbilidades, r.nivel_actividad_fisica,
               p.nombre as patologia_nombre, p.descripcion as patologia_descripcion, p.nivel_gravedad as patologia_gravedad,
               (SELECT COUNT(*) FROM rutina_ejercicios re WHERE re.rutina_id = r.id) as total_ejercicios,
@@ -139,7 +142,7 @@ export class RutinaRepository {
 
   static async finalizarRutina(rutinaId: number) {
     await pool.query(
-      `UPDATE rutinas SET activa = 0 WHERE id = ?`,
+      `UPDATE rutinas SET activa = 0, fecha_finalizacion = CURDATE() WHERE id = ?`,
       [rutinaId]
     );
   }

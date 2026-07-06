@@ -72,7 +72,9 @@ export const eliminarPaciente = async (req: Request, res: Response, next: NextFu
 
 export const reporteGeneral = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await AdminService.reporteGeneral();
+    const fechaInicio = req.query.fechaInicio as string;
+    const fechaFin = req.query.fechaFin as string;
+    const data = await AdminService.reporteGeneral(fechaInicio, fechaFin);
     return ApiResponse.success(res, 'Reporte general obtenido', data);
   } catch (error) {
     next(error);

@@ -62,6 +62,7 @@ export class RutinaRepository {
               re.series, re.repeticiones, re.frecuencia,
               (SELECT COUNT(*) FROM cumplimiento_ejercicios c 
                WHERE c.ejercicio_id = e.id 
+                 AND c.rutina_id = r.id
                  AND c.paciente_id = r.paciente_id 
                  AND c.fecha >= r.fecha_inicio AND c.fecha <= IFNULL(r.fecha_fin, CURDATE())) as veces_realizado
        FROM rutina_ejercicios re
@@ -87,6 +88,7 @@ export class RutinaRepository {
               r.fecha_creacion,
               (SELECT COUNT(*) FROM cumplimiento_ejercicios c 
                WHERE c.ejercicio_id = e.id 
+               AND c.rutina_id = r.id
                AND c.paciente_id = r.paciente_id 
                AND c.fecha = ?) AS vecesCompletadasHoy
        FROM rutina_ejercicios re
@@ -106,7 +108,7 @@ export class RutinaRepository {
               p.nombre as patologia_nombre, p.descripcion as patologia_descripcion, p.nivel_gravedad as patologia_gravedad,
               (SELECT COUNT(*) FROM rutina_ejercicios re WHERE re.rutina_id = r.id) as total_ejercicios,
               (SELECT COUNT(*) FROM cumplimiento_ejercicios c 
-               INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id 
+               INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id AND c.rutina_id = re.rutina_id
                WHERE re.rutina_id = r.id AND c.paciente_id = r.paciente_id 
                AND c.fecha >= r.fecha_inicio AND c.fecha <= IFNULL(r.fecha_fin, CURDATE())) as total_completados
        FROM rutinas r

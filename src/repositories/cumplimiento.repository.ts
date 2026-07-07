@@ -9,21 +9,21 @@ export class CumplimientoRepository {
     return rows[0]?.id;
   }
 
-  static async checkEjercicioCompletedToday(pacienteId: number, ejercicioId: number) {
+  static async checkEjercicioCompletedToday(pacienteId: number, ejercicioId: number, rutinaId: number) {
     const [rows]: any = await pool.query(
       `SELECT id FROM cumplimiento_ejercicios 
-       WHERE paciente_id = ? AND ejercicio_id = ? AND fecha = CURDATE()`,
-      [pacienteId, ejercicioId]
+       WHERE paciente_id = ? AND ejercicio_id = ? AND rutina_id = ? AND fecha = CURDATE()`,
+      [pacienteId, ejercicioId, rutinaId]
     );
     return rows.length > 0;
   }
 
-  static async addCumplimiento(pacienteId: number, ejercicioId: number, fecha: string) {
+  static async addCumplimiento(pacienteId: number, ejercicioId: number, rutinaId: number, fecha: string) {
     await pool.query(
       `INSERT INTO cumplimiento_ejercicios 
-       (paciente_id, ejercicio_id, fecha, completado)
-       VALUES (?, ?, ?, 1)`,
-      [pacienteId, ejercicioId, fecha]
+       (paciente_id, ejercicio_id, rutina_id, fecha, completado)
+       VALUES (?, ?, ?, ?, 1)`,
+      [pacienteId, ejercicioId, rutinaId, fecha]
     );
   }
 
@@ -59,8 +59,7 @@ export class CumplimientoRepository {
     const [rows]: any = await pool.query(
       `SELECT COUNT(c.id) as realizados
        FROM cumplimiento_ejercicios c
-       INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-       WHERE c.paciente_id = ? AND re.rutina_id = ? AND c.fecha BETWEEN ? AND ?`,
+       WHERE c.paciente_id = ? AND c.rutina_id = ? AND c.fecha BETWEEN ? AND ?`,
       [pacienteId, rutinaId, fInicio, fFin]
     );
     return rows[0]?.realizados || 0;
@@ -70,8 +69,7 @@ export class CumplimientoRepository {
     const [rows]: any = await pool.query(
       `SELECT COUNT(DISTINCT c.ejercicio_id) as realizados
        FROM cumplimiento_ejercicios c
-       INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-       WHERE c.paciente_id = ? AND re.rutina_id = ?`,
+       WHERE c.paciente_id = ? AND c.rutina_id = ?`,
       [pacienteId, rutinaId]
     );
     return rows[0]?.realizados || 0;
@@ -111,8 +109,7 @@ export class CumplimientoRepository {
         COUNT(c.id) AS veces_realizado
        FROM cumplimiento_ejercicios c
        INNER JOIN ejercicios e ON c.ejercicio_id = e.id
-       INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-       WHERE c.paciente_id = ? AND re.rutina_id = ? AND c.fecha BETWEEN ? AND ?`;
+       WHERE c.paciente_id = ? AND c.rutina_id = ? AND c.fecha BETWEEN ? AND ?`;
       params.push(rutinaId, fInicio, fFin);
     }
 
@@ -128,17 +125,16 @@ export class CumplimientoRepository {
         c.fecha, 
         COUNT(c.id) as cantidad_ejercicios,
         GROUP_CONCAT(DISTINCT e.nombre SEPARATOR ', ') as nombres_ejercicios,
-        r.id as rutina_id,
+        c.rutina_id,
         p.nombre as patologia_nombre
        FROM cumplimiento_ejercicios c
        INNER JOIN ejercicios e ON c.ejercicio_id = e.id
-       INNER JOIN rutina_ejercicios re ON c.ejercicio_id = re.ejercicio_id
-       INNER JOIN rutinas r ON re.rutina_id = r.id
+       LEFT JOIN rutinas r ON c.rutina_id = r.id
        LEFT JOIN patologias p ON r.patologia_id = p.id
-       WHERE c.paciente_id = ? AND r.paciente_id = ?
-       GROUP BY c.fecha, r.id, p.nombre
+       WHERE c.paciente_id = ?
+       GROUP BY c.fecha, c.rutina_id, p.nombre
        ORDER BY c.fecha DESC`,
-      [pacienteId, pacienteId]
+      [pacienteId]
     );
     return rows;
   }

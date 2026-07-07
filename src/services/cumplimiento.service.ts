@@ -10,22 +10,27 @@ export class CumplimientoService {
       throw new AppError('Paciente no encontrado', 404);
     }
 
+    // Lógica Alta Médica
+    let altaMedica = false;
+    const rutina = await CumplimientoRepository.getRutinaActivaConFechas(pacienteId);
+    
+    if (!rutina) {
+        throw new AppError('No hay una rutina activa para este paciente', 400);
+    }
+    
+    const { id: rutinaId, fecha_inicio, fecha_fin } = rutina;
+
     const yaCompletado = false; // El frontend controla la cantidad de registros permitidos al día.
     /*
-    const yaCompletado = await CumplimientoRepository.checkEjercicioCompletedToday(pacienteId, ejercicioId);
+    const yaCompletado = await CumplimientoRepository.checkEjercicioCompletedToday(pacienteId, ejercicioId, rutinaId);
     if (yaCompletado) {
       return { yaCompletado: true, altaMedica: false };
     }
     */
 
-    await CumplimientoRepository.addCumplimiento(pacienteId, ejercicioId, fecha);
-
-    // Lógica Alta Médica
-    let altaMedica = false;
-    const rutina = await CumplimientoRepository.getRutinaActivaConFechas(pacienteId);
+    await CumplimientoRepository.addCumplimiento(pacienteId, ejercicioId, rutinaId, fecha);
 
     if (rutina) {
-      const { id: rutinaId, fecha_inicio, fecha_fin } = rutina;
       const totalEjercicios = await CumplimientoRepository.countEjerciciosRutina(rutinaId);
       
       const fi = new Date(fecha_inicio);

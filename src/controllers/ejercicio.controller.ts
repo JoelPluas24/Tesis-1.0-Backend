@@ -14,7 +14,7 @@ export const crearEjercicio = async (req: Request, res: Response, next: NextFunc
 export const asociarEjercicioPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { patologia_id, ejercicios_ids } = req.body;
-    await EjercicioService.asociarEjercicioPatologia(Number(patologia_id), ejercicios_ids);
+    await EjercicioService.asociarEjercicioPatologia(patologia_id, ejercicios_ids);
     
     const message = (ejercicios_ids && ejercicios_ids.length > 0)
       ? 'Ejercicios asociados correctamente a la patología'
@@ -37,8 +37,8 @@ export const obtenerEjercicios = async (req: Request, res: Response, next: NextF
 
 export const obtenerEjercicioPorId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    const data = await EjercicioService.obtenerEjercicioPorId(Number(id));
+    const ejercicioId = req.params.id as string;
+    const data = await EjercicioService.obtenerEjercicioPorId(ejercicioId);
     return ApiResponse.success(res, 'Ejercicio obtenido', data);
   } catch (error) {
     next(error);
@@ -47,8 +47,8 @@ export const obtenerEjercicioPorId = async (req: Request, res: Response, next: N
 
 export const actualizarEjercicio = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await EjercicioService.actualizarEjercicio(Number(id), req.body);
+    const ejercicioId = req.params.id as string;
+    await EjercicioService.actualizarEjercicio(ejercicioId, req.body);
     return ApiResponse.success(res, 'Ejercicio actualizado correctamente');
   } catch (error) {
     next(error);
@@ -57,8 +57,8 @@ export const actualizarEjercicio = async (req: Request, res: Response, next: Nex
 
 export const eliminarEjercicio = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await EjercicioService.eliminarEjercicio(Number(id));
+    const ejercicioId = req.params.id as string;
+    await EjercicioService.eliminarEjercicio(ejercicioId);
     return ApiResponse.success(res, 'Ejercicio eliminado correctamente');
   } catch (error) {
     next(error);

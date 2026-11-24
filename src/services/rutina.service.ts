@@ -6,7 +6,7 @@ import { OneSignalService } from './onesignal.service.js';
 import { socketService } from './socket.service.js';
 
 export class RutinaService {
-  static async crearRutina(data: any, fisioterapeutaId: number) {
+  static async crearRutina(data: any, fisioterapeutaId: string) {
     const { paciente_id, fecha_inicio, fecha_fin, observaciones, ejercicios, total_sesiones } = data;
     const connection = await pool.getConnection();
 
@@ -54,7 +54,7 @@ export class RutinaService {
     }
   }
 
-  static async obtenerRutinaActiva(pacienteId: number) {
+  static async obtenerRutinaActiva(pacienteId: string) {
     const rutina = await RutinaRepository.getRutinaActiva(pacienteId);
     if (!rutina) {
       throw new AppError('No hay rutina activa', 404);
@@ -64,20 +64,20 @@ export class RutinaService {
     return { rutina, ejercicios };
   }
 
-  static async obtenerTodosLosEjerciciosPaciente(pacienteId: number, fechaLocal?: string) {
+  static async obtenerTodosLosEjerciciosPaciente(pacienteId: string, fechaLocal?: string) {
     return await RutinaRepository.getTodosEjerciciosPaciente(pacienteId, fechaLocal);
   }
 
-  static async obtenerHistorialRutinas(pacienteId: number) {
+  static async obtenerHistorialRutinas(pacienteId: string) {
     const historial = await RutinaRepository.getHistorialRutinas(pacienteId);
     return { paciente_id: pacienteId, historial };
   }
 
-  static async obtenerEjerciciosPorRutina(rutinaId: number) {
+  static async obtenerEjerciciosPorRutina(rutinaId: string) {
     return await RutinaRepository.getEjerciciosByRutina(rutinaId);
   }
 
-  static async editarRutina(rutinaId: number, data: any) {
+  static async editarRutina(rutinaId: string, data: any) {
     const { fecha_inicio, fecha_fin, observaciones, ejercicios } = data;
     const connection = await pool.getConnection();
 
@@ -102,12 +102,12 @@ export class RutinaService {
     }
   }
 
-  static async finalizarRutina(rutinaId: number) {
+  static async finalizarRutina(rutinaId: string) {
     await RutinaRepository.finalizarRutina(rutinaId);
     return true;
   }
 
-  static async eliminarRutina(rutinaId: number) {
+  static async eliminarRutina(rutinaId: string) {
     const connection = await pool.getConnection();
 
     try {

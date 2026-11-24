@@ -1,28 +1,32 @@
+import crypto from 'crypto';
 import { pool } from '../config/database.js';
 
 export class AuthRepository {
   static async createUser(userData: any, connection: any) {
+    const id = crypto.randomUUID();
     const { nombres, apellidos, email, password_hash, rol } = userData;
-    const [result]: any = await connection.query(
-      `INSERT INTO usuarios (nombres, apellidos, email, password_hash, rol) VALUES (?, ?, ?, ?, ?)`,
-      [nombres, apellidos, email, password_hash, rol]
+    await connection.query(
+      `INSERT INTO usuarios (id, nombres, apellidos, email, password_hash, rol) VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, nombres, apellidos, email, password_hash, rol]
     );
-    return result.insertId;
+    return id;
   }
 
   static async createFisioterapeuta(fisioterapeutaData: any, connection: any) {
+    const id = crypto.randomUUID();
     const { userId, especialidad, telefono } = fisioterapeutaData;
     await connection.query(
-      `INSERT INTO fisioterapeutas (usuario_id, especialidad, telefono) VALUES (?, ?, ?)`,
-      [userId, especialidad, telefono]
+      `INSERT INTO fisioterapeutas (id, usuario_id, especialidad, telefono) VALUES (?, ?, ?, ?)`,
+      [id, userId, especialidad, telefono]
     );
   }
 
   static async createPaciente(pacienteData: any, connection: any) {
+    const id = crypto.randomUUID();
     const { userId, edad, genero, direccion } = pacienteData;
     await connection.query(
-      `INSERT INTO pacientes (usuario_id, edad, genero, direccion) VALUES (?, ?, ?, ?)`,
-      [userId, edad, genero, direccion]
+      `INSERT INTO pacientes (id, usuario_id, edad, genero, direccion) VALUES (?, ?, ?, ?, ?)`,
+      [id, userId, edad, genero, direccion]
     );
   }
 

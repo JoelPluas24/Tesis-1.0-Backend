@@ -4,7 +4,7 @@ import { AppError } from '../utils/AppError.js';
 import { pool } from '../config/database.js';
 
 export class FisioterapeutaService {
-  static async listarPacientesAsignados(usuarioId: number) {
+  static async listarPacientesAsignados(usuarioId: string) {
     const fisioterapeutaId = await FisioterapeutaRepository.getFisioterapeutaIdByUsuarioId(usuarioId);
     if (!fisioterapeutaId) {
       throw new AppError('Fisioterapeuta no encontrado', 404);
@@ -13,11 +13,11 @@ export class FisioterapeutaService {
     return await FisioterapeutaRepository.getPacientesByFisioterapeuta(fisioterapeutaId);
   }
 
-  static async verPatologiaPaciente(pacienteId: number) {
+  static async verPatologiaPaciente(pacienteId: string) {
     return await FisioterapeutaRepository.getPatologiasByPaciente(pacienteId);
   }
 
-  static async asignarPatologiaPaciente(pacienteId: number, patologiaIds: number[]) {
+  static async asignarPatologiaPaciente(pacienteId: string, patologiaIds: string[]) {
     const connection = await pool.getConnection();
 
     try {
@@ -26,7 +26,7 @@ export class FisioterapeutaService {
       await FisioterapeutaRepository.clearPatologiasPaciente(pacienteId, connection);
 
       if (patologiaIds && patologiaIds.length > 0) {
-        const values = patologiaIds.map((id: number) => [pacienteId, id]);
+        const values = patologiaIds.map((id: string) => [pacienteId, id]);
         await FisioterapeutaRepository.insertPatologiasPaciente(values, connection);
       }
 
@@ -39,7 +39,7 @@ export class FisioterapeutaService {
     }
   }
 
-  static async getFisioterapeutaReporte(usuarioId: number) {
+  static async getFisioterapeutaReporte(usuarioId: string) {
     const fisioterapeutaId = await FisioterapeutaRepository.getFisioterapeutaIdByUsuarioId(usuarioId);
     if (!fisioterapeutaId) {
       throw new AppError('Fisioterapeuta no encontrado', 404);
@@ -47,7 +47,7 @@ export class FisioterapeutaService {
     return await FisioterapeutaRepository.getFisioterapeutaReporte(fisioterapeutaId);
   }
 
-  static async asignarFasePaciente(pacienteId: number, fase: string) {
+  static async asignarFasePaciente(pacienteId: string, fase: string) {
     const fasesValidas = ['AGUDA', 'SUBAGUDA', 'FORTALECIMIENTO'];
     if (!fasesValidas.includes(fase)) {
       throw new AppError('Fase de recuperación inválida', 400);
@@ -55,11 +55,11 @@ export class FisioterapeutaService {
     await PacienteRepository.actualizarFaseRecuperacion(pacienteId, fase);
   }
 
-  static async actualizarDatosClinicos(pacienteId: number, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
+  static async actualizarDatosClinicos(pacienteId: string, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
     await PacienteRepository.actualizarDatosClinicos(pacienteId, datos);
   }
 
-  static async darAltaPaciente(pacienteId: number) {
+  static async darAltaPaciente(pacienteId: string) {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();

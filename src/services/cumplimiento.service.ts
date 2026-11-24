@@ -4,7 +4,7 @@ import { socketService } from './socket.service.js';
 import { pool } from '../config/database.js';
 
 export class CumplimientoService {
-  static async registrarCumplimiento(ejercicioId: number, usuarioId: number, fecha: string) {
+  static async registrarCumplimiento(ejercicioId: string, usuarioId: string, fecha: string) {
     const pacienteId = await CumplimientoRepository.getPacienteIdByUsuarioId(usuarioId);
     if (!pacienteId) {
       throw new AppError('Paciente no encontrado', 404);
@@ -90,7 +90,7 @@ export class CumplimientoService {
     return { yaCompletado: false, altaMedica };
   }
 
-  static async verProgresoPaciente(pacienteId: number) {
+  static async verProgresoPaciente(pacienteId: string) {
     const rutina = await CumplimientoRepository.getRutinaActivaConFechas(pacienteId);
 
     if (!rutina) {
@@ -127,7 +127,7 @@ export class CumplimientoService {
     };
   }
 
-  static async obtenerHistorialDiario(pacienteId: number) {
+  static async obtenerHistorialDiario(pacienteId: string) {
     const historial = await CumplimientoRepository.getHistorialDiario(pacienteId);
     return historial;
   }

@@ -1,24 +1,60 @@
 import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger.js';
 
 class SocketService {
   private io: Server | null = null;
 
   init(httpServer: any) {
+    const allowedOrigins = [
+      'http://localhost:4200',
+      process.env.CORS_ORIGIN
+    ].filter(Boolean) as string[];
+
     this.io = new Server(httpServer, {
       cors: {
-        origin: '*', // En producción debería restringirse al dominio del frontend
-        methods: ['GET', 'POST']
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+          } else {
+            callback(new Error('No permitido por CORS en WebSockets'));
+          }
+        },
+        methods: ['GET', 'POST'],
+        credentials: true
+      }
+    });
+
+    // Middleware de autenticación JWT para WebSockets
+    this.io.use((socket, next) => {
+      const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
+      if (!token) {
+        return next(new Error('Autenticación de WebSocket requerida'));
+      }
+
+      try {
+        const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
+        socket.data.user = decoded;
+        next();
+      } catch (err) {
+        return next(new Error('Token de WebSocket inválido o expirado'));
       }
     });
 
     this.io.on('connection', (socket) => {
-      logger.info(`Nuevo cliente conectado: ${socket.id}`);
+      const authenticatedUserId = socket.data.user?.id;
+      logger.info(`Cliente autenticado conectado a WebSocket: ${socket.id} (user_${authenticatedUserId})`);
 
-      // Unir al usuario a una sala con su ID para enviarle notificaciones privadas
-      socket.on('registerUser', (userId: number) => {
-        socket.join(`user_${userId}`);
-        logger.info(`Socket ${socket.id} registrado para user_${userId}`);
+      if (authenticatedUserId) {
+        socket.join(`user_${authenticatedUserId}`);
+      }
+
+      // Si el cliente emite registerUser, solo permitir su propio ID verificado por el token JWT
+      socket.on('registerUser', () => {
+        if (authenticatedUserId) {
+          socket.join(`user_${authenticatedUserId}`);
+          logger.info(`Socket ${socket.id} registrado de forma segura para user_${authenticatedUserId}`);
+        }
       });
 
       socket.on('disconnect', () => {

@@ -5,7 +5,7 @@ import { pool } from '../config/database.js';
 import { socketService } from './socket.service.js';
 
 export class AdminService {
-  static async asginarPaciente(pacienteIds: number[], fisioterapeutaId: number) {
+  static async asginarPaciente(pacienteIds: string[], fisioterapeutaId: string) {
     if (!Array.isArray(pacienteIds) || pacienteIds.length === 0) {
       throw new AppError('Debe seleccionar al menos un paciente', 400);
     }
@@ -17,11 +17,11 @@ export class AdminService {
 
     const asignados = await AdminRepository.getAssignedPacientes(fisioterapeutaId, pacienteIds);
     if (asignados.length > 0) {
-      const mismoFisio = asignados.some((p: any) => p.fisioterapeuta_id === Number(fisioterapeutaId));
+      const mismoFisio = asignados.some((p: any) => String(p.fisioterapeuta_id) === String(fisioterapeutaId));
 
       if (mismoFisio) {
         const nombres = asignados
-          .filter((p: any) => p.fisioterapeuta_id === Number(fisioterapeutaId))
+          .filter((p: any) => String(p.fisioterapeuta_id) === String(fisioterapeutaId))
           .map((p: any) => `${p.nombres} ${p.apellidos}`)
           .join(', ');
 
@@ -60,7 +60,7 @@ export class AdminService {
     return await AdminRepository.getFisioterapeutasInactivosList();
   }
 
-  static async reactivarFisioterapeuta(id: number) {
+  static async reactivarFisioterapeuta(id: string) {
     const connection = await pool.getConnection();
 
     try {
@@ -82,7 +82,7 @@ export class AdminService {
     }
   }
 
-  static async actualizarFisioterapeuta(id: number, data: any) {
+  static async actualizarFisioterapeuta(id: string, data: any) {
     const { nombres, apellidos, email, especialidad, telefono } = data;
     const connection = await pool.getConnection();
 
@@ -106,7 +106,7 @@ export class AdminService {
     }
   }
 
-  static async eliminarFisioterapeuta(id: number) {
+  static async eliminarFisioterapeuta(id: string) {
     const connection = await pool.getConnection();
 
     try {
@@ -137,7 +137,7 @@ export class AdminService {
     return await AdminRepository.getPacientesInactivosList();
   }
 
-  static async actualizarPaciente(id: number, data: any) {
+  static async actualizarPaciente(id: string, data: any) {
     const { nombres, apellidos, email, edad, genero, direccion } = data;
     const connection = await pool.getConnection();
 
@@ -165,7 +165,7 @@ export class AdminService {
     }
   }
 
-  static async eliminarPaciente(id: number) {
+  static async eliminarPaciente(id: string) {
     const usuarioId = await AdminRepository.getPacienteUserIdWithoutConnection(id);
     if (!usuarioId) {
       throw new AppError('Paciente no encontrado', 404);
@@ -175,7 +175,7 @@ export class AdminService {
     await AdminRepository.unassignFisioterapeutaFromPaciente(id);
   }
 
-  static async reactivarPaciente(id: number) {
+  static async reactivarPaciente(id: string) {
     const connection = await pool.getConnection();
 
     try {

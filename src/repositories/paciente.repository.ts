@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 export class PacienteRepository {
-  static async getPacienteById(id: number) {
+  static async getPacienteById(id: string) {
     const [rows]: any = await pool.query(
       `SELECT id, usuario_id, fase_recuperacion, edad, nivel_dolor, comorbilidades, nivel_actividad_fisica FROM pacientes WHERE id = ?`,
       [id]
@@ -9,7 +9,7 @@ export class PacienteRepository {
     return rows[0];
   }
 
-  static async getEjerciciosRecomendadosBase(pacienteId: number, faseRecuperacion: string) {
+  static async getEjerciciosRecomendadosBase(pacienteId: string, faseRecuperacion: string) {
     const [rows]: any = await pool.query(
       `SELECT DISTINCT 
       e.id, e.nombre, e.descripcion, e.nivel_dificultad, e.video_url, e.tipo_ejercicio, e.requiere_carga, e.impacto_articular, p.nombre as patologia_nombre
@@ -24,7 +24,7 @@ export class PacienteRepository {
     return rows;
   }
 
-  static async getEjerciciosPorPatologia(pacienteId: number) {
+  static async getEjerciciosPorPatologia(pacienteId: string) {
     const [rows]: any = await pool.query(
       `SELECT DISTINCT 
       e.id, e.nombre, e.descripcion, 
@@ -70,7 +70,7 @@ export class PacienteRepository {
     return rows;
   }
 
-  static async actualizarFaseRecuperacion(pacienteId: number, fase: string) {
+  static async actualizarFaseRecuperacion(pacienteId: string, fase: string) {
     const [result]: any = await pool.query(
       `UPDATE pacientes SET fase_recuperacion = ? WHERE id = ?`,
       [fase, pacienteId]
@@ -78,7 +78,7 @@ export class PacienteRepository {
     return result;
   }
 
-  static async actualizarDatosClinicos(pacienteId: number, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
+  static async actualizarDatosClinicos(pacienteId: string, datos: { nivel_dolor: number, comorbilidades: string[], nivel_actividad_fisica: string }) {
     const comorbilidadesJson = datos.comorbilidades ? JSON.stringify(datos.comorbilidades) : null;
     const [result]: any = await pool.query(
       `UPDATE pacientes SET nivel_dolor = ?, comorbilidades = ?, nivel_actividad_fisica = ? WHERE id = ?`,

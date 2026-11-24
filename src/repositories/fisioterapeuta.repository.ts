@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 export class FisioterapeutaRepository {
-  static async getFisioterapeutaIdByUsuarioId(usuarioId: number) {
+  static async getFisioterapeutaIdByUsuarioId(usuarioId: string) {
     const [rows]: any = await pool.query(
       `SELECT id FROM fisioterapeutas WHERE usuario_id = ?`,
       [usuarioId]
@@ -9,7 +9,7 @@ export class FisioterapeutaRepository {
     return rows[0]?.id;
   }
 
-  static async getPacientesByFisioterapeuta(fisioterapeutaId: number) {
+  static async getPacientesByFisioterapeuta(fisioterapeutaId: string) {
     const [rows]: any = await pool.query(
       `SELECT p.id, u.nombres, u.apellidos, u.email, p.edad, p.genero, p.fase_recuperacion,
               p.nivel_dolor, p.comorbilidades, p.nivel_actividad_fisica,
@@ -22,7 +22,7 @@ export class FisioterapeutaRepository {
     return rows;
   }
 
-  static async getPatologiasByPaciente(pacienteId: number) {
+  static async getPatologiasByPaciente(pacienteId: string) {
     const [rows]: any = await pool.query(
       `SELECT p.id, p.nombre, p.descripcion, p.nivel_gravedad 
        FROM patologias p
@@ -33,7 +33,7 @@ export class FisioterapeutaRepository {
     return rows;
   }
 
-  static async clearPatologiasPaciente(pacienteId: number, connection: any) {
+  static async clearPatologiasPaciente(pacienteId: string, connection: any) {
     await connection.query('DELETE FROM paciente_patologias WHERE paciente_id = ?', [pacienteId]);
   }
 
@@ -44,7 +44,7 @@ export class FisioterapeutaRepository {
     );
   }
 
-  static async getFisioterapeutaReporte(fisioterapeutaId: number) {
+  static async getFisioterapeutaReporte(fisioterapeutaId: string) {
     const [pacientes]: any = await pool.query(
       `SELECT COUNT(*) as total FROM pacientes p 
        INNER JOIN usuarios u ON p.usuario_id = u.id 

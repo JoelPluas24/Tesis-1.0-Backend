@@ -1,7 +1,8 @@
+import crypto from 'crypto';
 import { pool } from '../config/database.js';
 
 export class RutinaRepository {
-  static async deactivateRutinasPrevias(pacienteId: number, connection: any) {
+  static async deactivateRutinasPrevias(pacienteId: string, connection: any) {
     await connection.query(
       `UPDATE rutinas SET activa = 0 WHERE paciente_id = ? AND activa = 1`,
       [pacienteId]
@@ -9,6 +10,7 @@ export class RutinaRepository {
   }
 
   static async createRutina(data: any, connection: any) {
+    const id = crypto.randomUUID();
     const { paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, total_sesiones } = data;
     
     // Buscar la patología activa del paciente
@@ -28,15 +30,15 @@ export class RutinaRepository {
 
     const sesiones = total_sesiones || 10;
 
-    const [result]: any = await connection.query(
-      `INSERT INTO rutinas (paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades, nivel_actividad_fisica, total_sesiones)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades ? JSON.stringify(comorbilidades) : null, nivel_actividad_fisica, sesiones]
+    await connection.query(
+      `INSERT INTO rutinas (id, paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades, nivel_actividad_fisica, total_sesiones)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, paciente_id, fisioterapeuta_id, fecha_inicio, fecha_fin, observaciones, patologia_id, fase_recuperacion, nivel_dolor, comorbilidades ? JSON.stringify(comorbilidades) : null, nivel_actividad_fisica, sesiones]
     );
-    return result.insertId;
+    return id;
   }
 
-  static async addEjerciciosToRutina(rutinaId: number, ejercicios: any[], connection: any) {
+  static async addEjerciciosToRutina(rutinaId: string, ejercicios: any[], connection: any) {
     for (const ejercicio of ejercicios) {
       await connection.query(
         `INSERT INTO rutina_ejercicios 
@@ -47,7 +49,7 @@ export class RutinaRepository {
     }
   }
 
-  static async getRutinaActiva(pacienteId: number) {
+  static async getRutinaActiva(pacienteId: string) {
     const [rutina]: any = await pool.query(
       `SELECT r.*, p.nombre as patologia_nombre, CONCAT(u.nombres, ' ', u.apellidos) as fisioterapeuta_nombre 
        FROM rutinas r
@@ -59,7 +61,7 @@ export class RutinaRepository {
     return rutina[0];
   }
 
-  static async getEjerciciosByRutina(rutinaId: number) {
+  static async getEjerciciosByRutina(rutinaId: string) {
     const [ejercicios]: any = await pool.query(
       `SELECT e.id, e.nombre, e.descripcion, e.video_url,
               re.series, re.repeticiones, re.frecuencia,
@@ -77,7 +79,7 @@ export class RutinaRepository {
     return ejercicios;
   }
 
-  static async getTodosEjerciciosPaciente(pacienteId: number, fechaLocal?: string) {
+  static async getTodosEjerciciosPaciente(pacienteId: string, fechaLocal?: string) {
     const fecha = fechaLocal || new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Guayaquil' }).format(new Date());
     const [ejercicios]: any = await pool.query(
       `SELECT DISTINCT 
@@ -104,7 +106,7 @@ export class RutinaRepository {
     return ejercicios;
   }
 
-  static async getHistorialRutinas(pacienteId: number) {
+  static async getHistorialRutinas(pacienteId: string) {
     const [rutinas]: any = await pool.query(
       `SELECT r.id, r.fecha_inicio, r.fecha_fin, r.fecha_finalizacion, r.observaciones, r.activa, r.fecha_creacion, r.total_sesiones,
               r.fase_recuperacion, r.nivel_dolor, r.comorbilidades, r.nivel_actividad_fisica,
@@ -136,7 +138,7 @@ export class RutinaRepository {
     return rutinas;
   }
 
-  static async updateRutina(rutinaId: number, data: any, connection: any) {
+  static async updateRutina(rutinaId: string, data: any, connection: any) {
     const { fecha_inicio, fecha_fin, observaciones } = data;
     await connection.query(
       `UPDATE rutinas SET fecha_inicio = ?, fecha_fin = ?, observaciones = ? WHERE id = ?`,
@@ -144,21 +146,21 @@ export class RutinaRepository {
     );
   }
 
-  static async finalizarRutina(rutinaId: number) {
+  static async finalizarRutina(rutinaId: string) {
     await pool.query(
       `UPDATE rutinas SET activa = 0, fecha_finalizacion = CURDATE() WHERE id = ?`,
       [rutinaId]
     );
   }
 
-  static async deleteEjerciciosFromRutina(rutinaId: number, connection: any) {
+  static async deleteEjerciciosFromRutina(rutinaId: string, connection: any) {
     await connection.query(
       `DELETE FROM rutina_ejercicios WHERE rutina_id = ?`,
       [rutinaId]
     );
   }
 
-  static async deleteRutina(rutinaId: number, connection: any) {
+  static async deleteRutina(rutinaId: string, connection: any) {
     await connection.query(
       `DELETE FROM rutinas WHERE id = ?`,
       [rutinaId]

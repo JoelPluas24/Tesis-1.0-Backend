@@ -1,13 +1,15 @@
+import crypto from 'crypto';
 import { pool } from '../config/database.js';
 
 export class PatologiaRepository {
   static async create(data: any) {
+    const id = crypto.randomUUID();
     const { nombre, descripcion, nivel_gravedad } = data;
-    const [result]: any = await pool.query(
-      `INSERT INTO patologias (nombre, descripcion, nivel_gravedad) VALUES (?, ?, ?)`,
-      [nombre, descripcion, nivel_gravedad]
+    await pool.query(
+      `INSERT INTO patologias (id, nombre, descripcion, nivel_gravedad) VALUES (?, ?, ?, ?)`,
+      [id, nombre, descripcion, nivel_gravedad]
     );
-    return result.insertId;
+    return id;
   }
 
   static async findAll() {
@@ -15,7 +17,7 @@ export class PatologiaRepository {
     return rows;
   }
 
-  static async findEjerciciosByPatologiaId(id: number) {
+  static async findEjerciciosByPatologiaId(id: string) {
     const [rows]: any = await pool.query(
       `SELECT e.*
        FROM ejercicios e
@@ -27,12 +29,12 @@ export class PatologiaRepository {
     return rows;
   }
 
-  static async findById(id: number) {
+  static async findById(id: string) {
     const [rows]: any = await pool.query('SELECT * FROM patologias WHERE id = ?', [id]);
     return rows[0];
   }
 
-  static async update(id: number, data: any) {
+  static async update(id: string, data: any) {
     const { nombre, descripcion, nivel_gravedad } = data;
     const [result]: any = await pool.query(
       `UPDATE patologias SET nombre = ?, descripcion = ?, nivel_gravedad = ? WHERE id = ?`,
@@ -41,12 +43,12 @@ export class PatologiaRepository {
     return result.affectedRows > 0;
   }
 
-  static async delete(id: number) {
+  static async delete(id: string) {
     const [result]: any = await pool.query('UPDATE patologias SET activa = 0 WHERE id = ?', [id]);
     return result.affectedRows > 0;
   }
 
-  static async countByName(nombre: string, excludeId?: number) {
+  static async countByName(nombre: string, excludeId?: string) {
     let query = 'SELECT COUNT(*) as total FROM patologias WHERE nombre = ? AND activa = 1';
     let params: any[] = [nombre];
     if (excludeId) {
@@ -57,7 +59,7 @@ export class PatologiaRepository {
     return rows[0].total;
   }
 
-  static async findByNameAndGravedad(nombre: string, nivel_gravedad: string, excludeId?: number) {
+  static async findByNameAndGravedad(nombre: string, nivel_gravedad: string, excludeId?: string) {
     let query = 'SELECT * FROM patologias WHERE nombre = ? AND nivel_gravedad = ? AND activa = 1';
     let params: any[] = [nombre, nivel_gravedad];
     if (excludeId) {

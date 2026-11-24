@@ -14,8 +14,8 @@ export const listarPacientesAsignados = async (req: Request, res: Response, next
 
 export const verPatologiaPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
-    const patologias = await FisioterapeutaService.verPatologiaPaciente(Number(paciente_id));
+    const paciente_id = req.params.paciente_id as string;
+    const patologias = await FisioterapeutaService.verPatologiaPaciente(paciente_id);
     return ApiResponse.success(res, 'Patologías obtenidas con éxito', patologias);
   } catch (error) {
     next(error);
@@ -24,9 +24,9 @@ export const verPatologiaPaciente = async (req: Request, res: Response, next: Ne
 
 export const asignarPatologiaPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
+    const paciente_id = req.params.paciente_id as string;
     const { patologia_ids } = req.body;
-    await FisioterapeutaService.asignarPatologiaPaciente(Number(paciente_id), patologia_ids);
+    await FisioterapeutaService.asignarPatologiaPaciente(paciente_id, patologia_ids);
     
     const message = (patologia_ids && patologia_ids.length > 0) 
       ? 'Patología(s) asignada(s) correctamente al paciente.' 
@@ -50,9 +50,9 @@ export const obtenerReporte = async (req: Request, res: Response, next: NextFunc
 
 export const asignarFasePaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
+    const paciente_id = req.params.paciente_id as string;
     const { fase_recuperacion } = req.body;
-    await FisioterapeutaService.asignarFasePaciente(Number(paciente_id), fase_recuperacion);
+    await FisioterapeutaService.asignarFasePaciente(paciente_id, fase_recuperacion);
     return ApiResponse.success(res, 'Fase de recuperación actualizada con éxito');
   } catch (error) {
     next(error);
@@ -61,8 +61,8 @@ export const asignarFasePaciente = async (req: Request, res: Response, next: Nex
 
 export const darAltaPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
-    await FisioterapeutaService.darAltaPaciente(Number(paciente_id));
+    const paciente_id = req.params.paciente_id as string;
+    await FisioterapeutaService.darAltaPaciente(paciente_id);
     return ApiResponse.success(res, 'Paciente dado de alta con éxito');
   } catch (error) {
     next(error);
@@ -71,9 +71,9 @@ export const darAltaPaciente = async (req: Request, res: Response, next: NextFun
 
 export const actualizarDatosClinicos = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
+    const paciente_id = req.params.paciente_id as string;
     const { nivel_dolor, comorbilidades, nivel_actividad_fisica } = req.body;
-    await FisioterapeutaService.actualizarDatosClinicos(Number(paciente_id), { nivel_dolor, comorbilidades, nivel_actividad_fisica });
+    await FisioterapeutaService.actualizarDatosClinicos(paciente_id, { nivel_dolor, comorbilidades, nivel_actividad_fisica });
     return ApiResponse.success(res, 'Datos clínicos actualizados con éxito');
   } catch (error) {
     next(error);

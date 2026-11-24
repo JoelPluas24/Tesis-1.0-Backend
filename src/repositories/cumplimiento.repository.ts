@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 export class CumplimientoRepository {
-  static async getPacienteIdByUsuarioId(usuarioId: number) {
+  static async getPacienteIdByUsuarioId(usuarioId: string) {
     const [rows]: any = await pool.query(
       `SELECT id FROM pacientes WHERE usuario_id = ?`,
       [usuarioId]
@@ -9,7 +9,7 @@ export class CumplimientoRepository {
     return rows[0]?.id;
   }
 
-  static async checkEjercicioCompletedToday(pacienteId: number, ejercicioId: number, rutinaId: number) {
+  static async checkEjercicioCompletedToday(pacienteId: string, ejercicioId: string, rutinaId: string) {
     const [rows]: any = await pool.query(
       `SELECT id FROM cumplimiento_ejercicios 
        WHERE paciente_id = ? AND ejercicio_id = ? AND rutina_id = ? AND fecha = CURDATE()`,
@@ -18,7 +18,7 @@ export class CumplimientoRepository {
     return rows.length > 0;
   }
 
-  static async addCumplimiento(pacienteId: number, ejercicioId: number, rutinaId: number, fecha: string) {
+  static async addCumplimiento(pacienteId: string, ejercicioId: string, rutinaId: string, fecha: string) {
     await pool.query(
       `INSERT INTO cumplimiento_ejercicios 
        (paciente_id, ejercicio_id, rutina_id, fecha, completado)
@@ -27,7 +27,7 @@ export class CumplimientoRepository {
     );
   }
 
-  static async getRutinaActivaConFechas(pacienteId: number) {
+  static async getRutinaActivaConFechas(pacienteId: string) {
     const [rows]: any = await pool.query(
       `SELECT id, fecha_inicio, fecha_fin, total_sesiones FROM rutinas WHERE paciente_id = ? AND activa = 1`,
       [pacienteId]
@@ -35,12 +35,12 @@ export class CumplimientoRepository {
     return rows[0] || null;
   }
 
-  static async getRutinaActivaId(pacienteId: number) {
+  static async getRutinaActivaId(pacienteId: string) {
     const row = await this.getRutinaActivaConFechas(pacienteId);
     return row?.id;
   }
 
-  static async countEjerciciosRutina(rutinaId: number) {
+  static async countEjerciciosRutina(rutinaId: string) {
     const [rows]: any = await pool.query(
       `SELECT COUNT(*) as total FROM rutina_ejercicios WHERE rutina_id = ?`,
       [rutinaId]
@@ -48,7 +48,7 @@ export class CumplimientoRepository {
     return rows[0]?.total || 0;
   }
 
-  static async countTotalCumplimientosRutina(pacienteId: number, rutinaId: number, fechaInicio: any, fechaFin: any) {
+  static async countTotalCumplimientosRutina(pacienteId: string, rutinaId: string, fechaInicio: any, fechaFin: any) {
     const fInicio = fechaInicio instanceof Date 
       ? new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Guayaquil' }).format(fechaInicio)
       : (typeof fechaInicio === 'string' ? fechaInicio.split('T')[0] : fechaInicio);
@@ -65,7 +65,7 @@ export class CumplimientoRepository {
     return rows[0]?.realizados || 0;
   }
 
-  static async countDistintosEjerciciosRealizados(pacienteId: number, rutinaId: number) {
+  static async countDistintosEjerciciosRealizados(pacienteId: string, rutinaId: string) {
     const [rows]: any = await pool.query(
       `SELECT COUNT(DISTINCT c.ejercicio_id) as realizados
        FROM cumplimiento_ejercicios c
@@ -75,19 +75,19 @@ export class CumplimientoRepository {
     return rows[0]?.realizados || 0;
   }
 
-  static async deactivateUsuario(usuarioId: number) {
+  static async deactivateUsuario(usuarioId: string) {
     await pool.query(`UPDATE usuarios SET activo = 0 WHERE id = ?`, [usuarioId]);
   }
 
-  static async unassignFisioterapeuta(pacienteId: number) {
+  static async unassignFisioterapeuta(pacienteId: string) {
     await pool.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE id = ?`, [pacienteId]);
   }
 
-  static async deactivateRutina(rutinaId: number) {
+  static async deactivateRutina(rutinaId: string) {
     await pool.query(`UPDATE rutinas SET activa = 0 WHERE id = ?`, [rutinaId]);
   }
 
-  static async getProgresoResumen(pacienteId: number, rutinaId?: number, fechaInicio?: any, fechaFin?: any) {
+  static async getProgresoResumen(pacienteId: string, rutinaId?: string, fechaInicio?: any, fechaFin?: any) {
     let query = `SELECT 
         e.nombre,
         COUNT(c.id) AS veces_realizado
@@ -119,7 +119,7 @@ export class CumplimientoRepository {
     return rows;
   }
 
-  static async getHistorialDiario(pacienteId: number) {
+  static async getHistorialDiario(pacienteId: string) {
     const [rows]: any = await pool.query(
       `SELECT 
         c.fecha, 

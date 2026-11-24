@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 export class AdminRepository {
-  static async getFisioterapeutaById(id: number) {
+  static async getFisioterapeutaById(id: string) {
     const [rows]: any = await pool.query(
       `SELECT * FROM fisioterapeutas WHERE id = ?`,
       [id]
@@ -9,7 +9,7 @@ export class AdminRepository {
     return rows[0];
   }
 
-  static async getAssignedPacientes(fisioterapeutaId: number, pacienteIds: number[]) {
+  static async getAssignedPacientes(fisioterapeutaId: string, pacienteIds: string[]) {
     const [rows]: any = await pool.query(
       `SELECT p.id, u.nombres, u.apellidos, p.fisioterapeuta_id 
        FROM pacientes p
@@ -20,7 +20,7 @@ export class AdminRepository {
     return rows;
   }
 
-  static async assignPacientesToFisioterapeuta(fisioterapeutaId: number, pacienteIds: number[]) {
+  static async assignPacientesToFisioterapeuta(fisioterapeutaId: string, pacienteIds: string[]) {
     await pool.query(
       `UPDATE pacientes SET fisioterapeuta_id = ? WHERE id IN (?)`,
       [fisioterapeutaId, pacienteIds]
@@ -47,30 +47,30 @@ export class AdminRepository {
     return rows;
   }
 
-  static async getFisioterapeutaUserId(id: number, connection: any) {
+  static async getFisioterapeutaUserId(id: string, connection: any) {
     const [rows]: any = await connection.query(`SELECT usuario_id FROM fisioterapeutas WHERE id = ?`, [id]);
     return rows[0]?.usuario_id;
   }
 
-  static async updateUsuario(id: number, nombres: string, apellidos: string, email: string, connection: any) {
+  static async updateUsuario(id: string, nombres: string, apellidos: string, email: string, connection: any) {
     await connection.query(
       `UPDATE usuarios SET nombres = ?, apellidos = ?, email = ? WHERE id = ?`,
       [nombres, apellidos, email, id]
     );
   }
 
-  static async updateFisioterapeuta(id: number, especialidad: string, telefono: string, connection: any) {
+  static async updateFisioterapeuta(id: string, especialidad: string, telefono: string, connection: any) {
     await connection.query(
       `UPDATE fisioterapeutas SET especialidad = ?, telefono = ? WHERE id = ?`,
       [especialidad, telefono, id]
     );
   }
 
-  static async removeUsuario(id: number, connection: any) {
+  static async removeUsuario(id: string, connection: any) {
     await connection.query(`UPDATE usuarios SET activo = 0 WHERE id = ?`, [id]);
   }
 
-  static async unassignPatientsFromFisioterapeuta(fisioterapeutaId: number, connection: any) {
+  static async unassignPatientsFromFisioterapeuta(fisioterapeutaId: string, connection: any) {
     await connection.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE fisioterapeuta_id = ?`, [fisioterapeutaId]);
   }
 
@@ -94,36 +94,36 @@ export class AdminRepository {
     return rows;
   }
 
-  static async getPacienteUserId(id: number, connection: any) {
+  static async getPacienteUserId(id: string, connection: any) {
     const [rows]: any = await connection.query(`SELECT usuario_id FROM pacientes WHERE id = ?`, [id]);
     return rows[0]?.usuario_id;
   }
 
-  static async updatePaciente(id: number, edad: number, genero: string, direccion: string, connection: any) {
+  static async updatePaciente(id: string, edad: number, genero: string, direccion: string, connection: any) {
     await connection.query(
       `UPDATE pacientes SET edad = ?, genero = ?, direccion = ? WHERE id = ?`,
       [edad, genero, direccion, id]
     );
   }
 
-  static async getPacienteUserIdWithoutConnection(id: number) {
+  static async getPacienteUserIdWithoutConnection(id: string) {
     const [rows]: any = await pool.query(`SELECT usuario_id FROM pacientes WHERE id = ?`, [id]);
     return rows[0]?.usuario_id;
   }
 
-  static async removeUsuarioWithoutConnection(id: number) {
+  static async removeUsuarioWithoutConnection(id: string) {
     await pool.query(`UPDATE usuarios SET activo = 0 WHERE id = ?`, [id]);
   }
 
-  static async reactivarUsuarioWithoutConnection(id: number) {
+  static async reactivarUsuarioWithoutConnection(id: string) {
     await pool.query(`UPDATE usuarios SET activo = 1 WHERE id = ?`, [id]);
   }
 
-  static async reactivarUsuario(id: number, connection: any) {
+  static async reactivarUsuario(id: string, connection: any) {
     await connection.query(`UPDATE usuarios SET activo = 1 WHERE id = ?`, [id]);
   }
 
-  static async unassignFisioterapeutaFromPaciente(id: number) {
+  static async unassignFisioterapeutaFromPaciente(id: string) {
     await pool.query(`UPDATE pacientes SET fisioterapeuta_id = NULL WHERE id = ?`, [id]);
   }
 

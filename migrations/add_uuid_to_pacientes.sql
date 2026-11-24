@@ -1,0 +1,36 @@
+-- Esquema con UUID directo como clave primaria (id VARCHAR(36) NOT NULL DEFAULT (UUID()) PRIMARY KEY)
+-- Todas las tablas (usuarios, fisioterapeutas, pacientes, patologias, ejercicios, rutinas, etc.)
+-- utilizan directamente la columna `id` de tipo VARCHAR(36) como UUID sin necesidad de una columna `uuid` adicional.
+
+ALTER TABLE usuarios MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID());
+ALTER TABLE fisioterapeutas
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN usuario_id VARCHAR(36) NOT NULL;
+ALTER TABLE pacientes
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN usuario_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN fisioterapeuta_id VARCHAR(36) DEFAULT NULL;
+ALTER TABLE patologias MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID());
+ALTER TABLE ejercicios MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID());
+ALTER TABLE paciente_patologias
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN paciente_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN patologia_id VARCHAR(36) NOT NULL;
+ALTER TABLE patologia_ejercicios
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN patologia_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN ejercicio_id VARCHAR(36) NOT NULL;
+ALTER TABLE rutinas
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN paciente_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN fisioterapeuta_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN patologia_id VARCHAR(36) DEFAULT NULL;
+ALTER TABLE rutina_ejercicios
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN rutina_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN ejercicio_id VARCHAR(36) NOT NULL;
+ALTER TABLE cumplimiento_ejercicios
+  MODIFY COLUMN id VARCHAR(36) NOT NULL DEFAULT (UUID()),
+  MODIFY COLUMN paciente_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN ejercicio_id VARCHAR(36) NOT NULL,
+  MODIFY COLUMN rutina_id VARCHAR(36) DEFAULT NULL;

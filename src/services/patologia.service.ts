@@ -22,11 +22,11 @@ export class PatologiaService {
     return await PatologiaRepository.findAll();
   }
 
-  static async obtenerEjerciciosPorPatologia(id: number) {
+  static async obtenerEjerciciosPorPatologia(id: string) {
     return await PatologiaRepository.findEjerciciosByPatologiaId(id);
   }
 
-  static async obtenerPatologiaPorId(id: number) {
+  static async obtenerPatologiaPorId(id: string) {
     const patologia = await PatologiaRepository.findById(id);
     if (!patologia) {
       throw new AppError('Patología no encontrada', 404);
@@ -34,7 +34,7 @@ export class PatologiaService {
     return patologia;
   }
 
-  static async actualizarPatologia(id: number, data: any) {
+  static async actualizarPatologia(id: string, data: any) {
     const { nombre, nivel_gravedad } = data;
 
     const existente = await PatologiaRepository.findByNameAndGravedad(nombre, nivel_gravedad, id);
@@ -53,7 +53,7 @@ export class PatologiaService {
     }
   }
 
-  static async eliminarPatologia(id: number) {
+  static async eliminarPatologia(id: string) {
     const success = await PatologiaRepository.delete(id);
     if (!success) {
       throw new AppError('Patología no encontrada', 404);

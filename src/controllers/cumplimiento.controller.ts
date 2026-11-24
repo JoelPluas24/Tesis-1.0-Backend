@@ -24,8 +24,8 @@ export const registrarCumplimiento = async (req: Request, res: Response, next: N
 
 export const verProgresoPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
-    const progreso = await CumplimientoService.verProgresoPaciente(Number(paciente_id));
+    const paciente_id = req.params.paciente_id as string;
+    const progreso = await CumplimientoService.verProgresoPaciente(paciente_id);
     return ApiResponse.success(res, 'Progreso del paciente', progreso);
   } catch (error) {
     next(error);
@@ -34,8 +34,8 @@ export const verProgresoPaciente = async (req: Request, res: Response, next: Nex
 
 export const verHistorialPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { paciente_id } = req.params;
-    const historial = await CumplimientoService.obtenerHistorialDiario(Number(paciente_id));
+    const paciente_id = req.params.paciente_id as string;
+    const historial = await CumplimientoService.obtenerHistorialDiario(paciente_id);
     return ApiResponse.success(res, 'Historial diario del paciente', historial);
   } catch (error) {
     next(error);

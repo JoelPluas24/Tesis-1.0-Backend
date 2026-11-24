@@ -3,7 +3,7 @@ import { AppError } from '../utils/AppError.js';
 import { MotorInferencia } from '../utils/motorInferencia.util.js';
 
 export class PacienteService {
-  static async obtenerEjerciciosRecomendados(pacienteId: number) {
+  static async obtenerEjerciciosRecomendados(pacienteId: string) {
     const paciente = await PacienteRepository.getPacienteById(pacienteId);
 
     if (!paciente) {

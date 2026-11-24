@@ -15,28 +15,23 @@ export const authorizePatientAccess = async (req: Request, res: Response, next: 
       return next();
     }
 
-    let pacienteIdRaw = req.params.paciente_id || req.body?.paciente_id;
+    let pacienteId = (req.params.paciente_id || req.body?.paciente_id) as string;
 
     // Si no hay paciente_id directo, pero hay un id de rutina en los params (para PUT/DELETE/GET de rutinas)
-    if (!pacienteIdRaw && req.params.id) {
+    if (!pacienteId && req.params.id) {
       const [rutinaRows]: any = await pool.query(
         'SELECT paciente_id, fisioterapeuta_id FROM rutinas WHERE id = ?',
-        [Number(req.params.id)]
+        [req.params.id]
       );
       if (rutinaRows.length === 0) {
         return next(new AppError('Rutina no encontrada', 404));
       }
       
-      pacienteIdRaw = rutinaRows[0].paciente_id;
+      pacienteId = rutinaRows[0].paciente_id;
     }
 
-    if (!pacienteIdRaw) {
+    if (!pacienteId) {
       return next(new AppError('ID de paciente requerido', 400));
-    }
-
-    const pacienteId = Number(pacienteIdRaw);
-    if (isNaN(pacienteId)) {
-      return next(new AppError('ID de paciente inválido', 400));
     }
 
     if (user.rol === UserRole.PACIENTE) {

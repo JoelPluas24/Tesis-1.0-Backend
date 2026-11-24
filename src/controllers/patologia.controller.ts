@@ -22,8 +22,8 @@ export const obtenerPatologias = async (req: Request, res: Response, next: NextF
 
 export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    const data = await PatologiaService.obtenerEjerciciosPorPatologia(Number(id));
+    const patologiaId = req.params.id as string;
+    const data = await PatologiaService.obtenerEjerciciosPorPatologia(patologiaId);
     return ApiResponse.success(res, 'Ejercicios de la patología obtenidos', data);
   } catch (error) {
     next(error);
@@ -32,8 +32,8 @@ export const obtenerEjerciciosPorPatologia = async (req: Request, res: Response,
 
 export const obtenerPatologiaPorId = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    const data = await PatologiaService.obtenerPatologiaPorId(Number(id));
+    const patologiaId = req.params.id as string;
+    const data = await PatologiaService.obtenerPatologiaPorId(patologiaId);
     return ApiResponse.success(res, 'Patología obtenida', data);
   } catch (error) {
     next(error);
@@ -42,8 +42,8 @@ export const obtenerPatologiaPorId = async (req: Request, res: Response, next: N
 
 export const actualizarPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await PatologiaService.actualizarPatologia(Number(id), req.body);
+    const patologiaId = req.params.id as string;
+    await PatologiaService.actualizarPatologia(patologiaId, req.body);
     return ApiResponse.success(res, 'Patología actualizada correctamente');
   } catch (error) {
     next(error);
@@ -52,8 +52,8 @@ export const actualizarPatologia = async (req: Request, res: Response, next: Nex
 
 export const eliminarPatologia = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await PatologiaService.eliminarPatologia(Number(id));
+    const patologiaId = req.params.id as string;
+    await PatologiaService.eliminarPatologia(patologiaId);
     return ApiResponse.success(res, 'Patología eliminada correctamente');
   } catch (error) {
     next(error);

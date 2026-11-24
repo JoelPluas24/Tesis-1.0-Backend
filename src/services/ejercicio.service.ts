@@ -7,7 +7,7 @@ export class EjercicioService {
     return await EjercicioRepository.create(data);
   }
 
-  static async asociarEjercicioPatologia(patologia_id: number, ejercicios_ids: number[]) {
+  static async asociarEjercicioPatologia(patologia_id: string, ejercicios_ids: string[]) {
     const connection = await pool.getConnection();
     
     try {
@@ -16,7 +16,7 @@ export class EjercicioService {
       await EjercicioRepository.clearAsociaciones(patologia_id, connection);
 
       if (ejercicios_ids && ejercicios_ids.length > 0) {
-        const values = ejercicios_ids.map((id: number) => [patologia_id, id]);
+        const values = ejercicios_ids.map((id: string) => [patologia_id, id]);
         await EjercicioRepository.bulkInsertAsociaciones(values, connection);
       }
 
@@ -33,7 +33,7 @@ export class EjercicioService {
     return await EjercicioRepository.findAll();
   }
 
-  static async obtenerEjercicioPorId(id: number) {
+  static async obtenerEjercicioPorId(id: string) {
     const ejercicio = await EjercicioRepository.findById(id);
     if (!ejercicio) {
       throw new AppError('Ejercicio no encontrado', 404);
@@ -41,14 +41,14 @@ export class EjercicioService {
     return ejercicio;
   }
 
-  static async actualizarEjercicio(id: number, data: any) {
+  static async actualizarEjercicio(id: string, data: any) {
     const success = await EjercicioRepository.update(id, data);
     if (!success) {
       throw new AppError('Ejercicio no encontrado', 404);
     }
   }
 
-  static async eliminarEjercicio(id: number) {
+  static async eliminarEjercicio(id: string) {
     const success = await EjercicioRepository.delete(id);
     if (!success) {
       throw new AppError('Ejercicio no encontrado', 404);

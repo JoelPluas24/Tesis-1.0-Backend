@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { pool } from './database.js';
 import { UserRole } from '../types/roles.js';
@@ -14,6 +15,7 @@ export const seedDatabase = async () => {
     if (rows.length === 0) {
       logger.info('No se encontró ningún administrador. Creando administrador por defecto...');
 
+      const id = crypto.randomUUID();
       const nombres = 'Administrador';
       const apellidos = 'Sistema';
       const email = 'admin@rehabsync.com';
@@ -25,9 +27,9 @@ export const seedDatabase = async () => {
 
       // Insertar usuario administrador
       await pool.query(
-        `INSERT INTO usuarios (nombres, apellidos, email, password_hash, rol)
-         VALUES (?, ?, ?, ?, ?)`,
-        [nombres, apellidos, email, password_hash, rol]
+        `INSERT INTO usuarios (id, nombres, apellidos, email, password_hash, rol)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, nombres, apellidos, email, password_hash, rol]
       );
 
       logger.info('Administrador inicial creado con éxito.');

@@ -14,6 +14,18 @@ import { globalLimiter, authLimiter } from './middlewares/rateLimiter.js';
 
 const app = express();
 
+// Ocultar la cabecera X-Powered-By para evitar fingerprinting del servidor
+app.disable('x-powered-by');
+
+// Cabeceras de seguridad HTTP (Protección contra Clickjacking, MIME-Sniffing y XSS)
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
 // Configuración de CORS más segura
 const allowedOrigins = [
   'http://localhost:4200',
@@ -34,7 +46,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+// Límite estricto de tamaño de payload para prevenir ataques de Denegación de Servicio (DoS)
+app.use(express.json({ limit: '50kb' }));
 
 // Aplicar Rate Limiting global
 app.use(globalLimiter);

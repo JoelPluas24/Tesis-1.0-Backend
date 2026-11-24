@@ -32,8 +32,8 @@ export const listarFisioterapeutasInactivos = async (req: Request, res: Response
 
 export const reactivarFisioterapeuta = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.reactivarFisioterapeuta(Number(id));
+    const id = req.params.id as string;
+    await AdminService.reactivarFisioterapeuta(id);
     return ApiResponse.success(res, 'Fisioterapeuta reactivado exitosamente');
   } catch (error) {
     next(error);
@@ -42,8 +42,8 @@ export const reactivarFisioterapeuta = async (req: Request, res: Response, next:
 
 export const actualizarFisioterapeuta = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.actualizarFisioterapeuta(Number(id), req.body);
+    const id = req.params.id as string;
+    await AdminService.actualizarFisioterapeuta(id, req.body);
     return ApiResponse.success(res, 'Fisioterapeuta actualizado exitosamente');
   } catch (error) {
     next(error);
@@ -52,8 +52,8 @@ export const actualizarFisioterapeuta = async (req: Request, res: Response, next
 
 export const eliminarFisioterapeuta = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.eliminarFisioterapeuta(Number(id));
+    const id = req.params.id as string;
+    await AdminService.eliminarFisioterapeuta(id);
     return ApiResponse.success(res, 'Fisioterapeuta dado de baja correctamente');
   } catch (error) {
     next(error);
@@ -71,8 +71,8 @@ export const listarPacientes = async (req: Request, res: Response, next: NextFun
 
 export const actualizarPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.actualizarPaciente(Number(id), req.body);
+    const id = req.params.id as string;
+    await AdminService.actualizarPaciente(id, req.body);
     return ApiResponse.success(res, 'Paciente actualizado exitosamente');
   } catch (error) {
     next(error);
@@ -81,8 +81,8 @@ export const actualizarPaciente = async (req: Request, res: Response, next: Next
 
 export const eliminarPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.eliminarPaciente(Number(id));
+    const id = req.params.id as string;
+    await AdminService.eliminarPaciente(id);
     return ApiResponse.success(res, 'Paciente dado de baja correctamente');
   } catch (error) {
     next(error);
@@ -111,8 +111,8 @@ export const listarPacientesInactivos = async (req: Request, res: Response, next
 
 export const reactivarPaciente = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    await AdminService.reactivarPaciente(Number(id));
+    const id = req.params.id as string;
+    await AdminService.reactivarPaciente(id);
     return ApiResponse.success(res, 'Paciente reactivado exitosamente');
   } catch (error) {
     next(error);

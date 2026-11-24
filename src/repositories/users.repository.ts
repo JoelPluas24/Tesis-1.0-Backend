@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 export class UsersRepository {
-  static async getPerfilUsuario(userId: number) {
+  static async getPerfilUsuario(userId: string) {
     const [rows]: any = await pool.query(
       `SELECT 
          u.id, u.nombres, u.apellidos, u.email, u.rol, u.activo,
@@ -16,7 +16,7 @@ export class UsersRepository {
     return rows[0];
   }
 
-  static async getUserByIdWithPassword(userId: number) {
+  static async getUserByIdWithPassword(userId: string) {
     const [rows]: any = await pool.query(
       `SELECT id, password_hash FROM usuarios WHERE id = ?`,
       [userId]
@@ -24,7 +24,7 @@ export class UsersRepository {
     return rows[0];
   }
 
-  static async updatePassword(userId: number, passwordHash: string) {
+  static async updatePassword(userId: string, passwordHash: string) {
     await pool.query(
       `UPDATE usuarios SET password_hash = ? WHERE id = ?`,
       [passwordHash, userId]
